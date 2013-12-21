@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database defaultIdMethod="native" name="thelia" >
+    <!--
+    See propel documentation on http://propelorm.org for all information about schema file
+    -->
+	<table name="free_shipping" namespace="FreeShipping\Model">
+        <column autoIncrement="true" name="id" primaryKey="true" required="true" type="INTEGER" />
+		<column name="area_id" primaryKey="true" required="true" type="INTEGER" />
+        <column name="amount" required="true" type="INTEGER" />
+		<foreign-key foreignTable="area" name="fk_area_associated_freeShipping_area_id">
+			<reference foreign="id" local="area_id" />
+		</foreign-key>
+	</table>
+
+    <external-schema filename="local/config/schema.xml" referenceOnly="true" />
+</database>

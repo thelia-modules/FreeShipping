@@ -1,0 +1,16 @@
+{javascripts file='assets/js/main.js'}
+<script src="{$asset_url}"></script>
+{/javascripts}
+{javascripts file='assets/js/bootstrap-select/bootstrap-select.js'}
+<script src="{$asset_url}"></script>
+{/javascripts}
+
+<script>
+    $(function() {
+
+        $('a.rule-delete').click(function(ev) {
+            $('#rule_delete_id').val($(this).data('id'));
+        });
+
+    });
+</script>
