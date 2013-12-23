@@ -1,0 +1,70 @@
+{extends file="admin-layout.tpl"}
+
+{block name="check-resource"}admin.freeShipping{/block}
+{block name="check-access"}update{/block}
+
+{block name="page-title"}{intl l='Edit free shipping rule'}{/block}
+
+{block name="main-content"}
+<div class="free-shipping edit-free-shipping">
+    <div id="wrapper" class="container">
+
+        <ul class="breadcrumb">
+            <li><a href="{url path='admin/home'}">{intl l="Home"}</a></li>
+            <li><a href="{url path='admin/module/FreeShipping'}">{intl l="Free Shipping"}</a></li>
+        </ul>
+
+        <div class="row">
+            <div class="col-md-12 general-block-decorator">
+                <div class="row">
+                    <div class="col-md-12 title">
+                        {intl l='Edit free shipping rule'}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+
+                        <div class="form-container">
+
+                            {form name="freeShipping.admin.rule.modification"}
+                            <form method="POST" action="{url path='/admin/module/FreeShipping/save'}" {form_enctype form=$form} class="clearfix">
+
+                            {* Be sure to get the keyword ID, even if the form could not be validated *}
+                            <input type="hidden" name="keyword_id" value="{$keyword_id}" />
+
+                            {form_hidden_fields form=$form}
+
+                            {form_field form=$form field='area'}
+                            <div class="form-group {if $error}has-error{/if}">
+                                <label class="control-label" for="{$label_attr.for}">{$label} : </label>
+                                <select name="{$name}" id="{$label_attr.for}" data-toggle="selectpicker">
+                                    {loop name="area" type="area"}
+                                    <option value="{$ID}" {if $value == $ID}selected="selected"{/if}>{$NAME}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                            {/form_field}
+
+                            {form_field form=$form field='amount'}
+                            <div class="form-group {if $error}has-error{/if}">
+                                <label for="{$label_attr.for}" class="control-label">{$label} : </label>
+                                <input type="text" id="{$label_attr.for}" name="{$name}" class="form-control" value="{$value}" title="{$label}" placeholder="{intl l='amount'}">
+                                <div class="help-block">{intl l='Enter the amount from which the rule will apply'}</div>
+                            </div>
+                            {/form_field}
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">{intl l="Update"}</button>
+                            </div>
+
+                            </form>
+                            {/form}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

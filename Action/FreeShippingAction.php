@@ -25,6 +25,7 @@ namespace FreeShipping\Action;
 
 use FreeShipping\Event\FreeShippingDeleteEvent;
 use FreeShipping\Event\FreeShippingEvents;
+use FreeShipping\Event\FreeShippingUpdateEvent;
 use FreeShipping\Model\FreeShipping;
 use FreeShipping\Model\FreeShippingQuery;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -51,6 +52,26 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
             ->setAreaId($event->getArea())
             ->save();
 
+    }
+
+    public function updateRule(FreeShippingUpdateEvent $event)
+    {
+        $rule = FreeShippingQuery::create()->findOneById($event->getRuleId());
+
+        $id = $rule->getId();
+        $areaId = $rule->getAreaId();
+
+        if (null !== $freeShipping = FreeShippingQuery::create()->findPk(array($id, $areaId))) {
+
+            $freeShipping->setDispatcher($this->getDispatcher());
+
+            $freeShipping
+                ->setAreaId($event->getArea())
+                ->setAmount($event->getAmount())
+                ->save();
+
+            $event->setRuleId($freeShipping);
+        }
     }
 
     public function deleteRule(FreeShippingDeleteEvent $event)
@@ -94,6 +115,7 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
     {
         return array(
             FreeShippingEvents::FREE_SHIPPING_RULE_CREATE      => array('createRule', 128),
+            FreeShippingUpdateEvent::FREE_SHIPPING_RULE_UPDATE => array('updateRule', 128),
             FreeShippingDeleteEvent::FREE_SHIPPING_RULE_DELETE => array('deleteRule', 128)
         );
     }

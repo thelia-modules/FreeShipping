@@ -25,7 +25,9 @@ namespace FreeShipping\Controller\Admin;
 
 use FreeShipping\Event\FreeShippingDeleteEvent;
 use FreeShipping\Event\FreeShippingEvents;
+use FreeShipping\Event\FreeShippingUpdateEvent;
 use FreeShipping\Form\FreeShippingRuleCreationForm;
+use FreeShipping\Form\FreeShippingRuleModificationForm;
 use Propel\Runtime\Exception\PropelException;
 use Thelia\Controller\Admin\AbstractCrudController;
 use Thelia\Controller\Admin\unknown;
@@ -52,7 +54,7 @@ class FreeShippingController extends AbstractCrudController
             'admin.freeShipping',
 
             FreeShippingEvents::FREE_SHIPPING_RULE_CREATE,
-            null,
+            FreeShippingUpdateEvent::FREE_SHIPPING_RULE_UPDATE,
             FreeShippingDeleteEvent::FREE_SHIPPING_RULE_DELETE,
             null,
             null
@@ -73,7 +75,7 @@ class FreeShippingController extends AbstractCrudController
 
             $this->areaId = $form->get('area')->getData();
 
-            if(null === $this->getExistingObject($this->areaId)){
+            if(null === $this->getExistingObject()){
                 $this->dispatch(FreeShippingEvents::FREE_SHIPPING_RULE_CREATE, $event);
                 $this->redirectSuccess($ruleCreationForm);
             }
@@ -122,7 +124,7 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function getCreationForm()
     {
-        // TODO: Implement getCreationForm() method.
+        return new FreeShippingRuleCreationForm($this->getRequest());
     }
 
     /**
@@ -130,7 +132,7 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function getUpdateForm()
     {
-        // TODO: Implement getUpdateForm() method.
+        return new FreeShippingRuleModificationForm($this->getRequest());
     }
 
     /**
@@ -140,7 +142,15 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function hydrateObjectForm($object)
     {
-        // TODO: Implement hydrateObjectForm() method.
+        // Prepare the data that will hydrate the form
+        $data = array(
+            'id' => $object->getId(),
+            'area' => $object->getAreaId(),
+            'amount' => $object->getAmount()
+        );
+
+        // Setup the object form
+        return new FreeShippingRuleModificationForm($this->getRequest(), "form", $data);
     }
 
     /**
@@ -150,7 +160,7 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function getCreationEvent($formData)
     {
-        // TODO: Implement getCreationEvent() method.
+        return new FreeShippingEvents($formData['amount'], $formData['area']);
     }
 
     /**
@@ -160,7 +170,13 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function getUpdateEvent($formData)
     {
-        // TODO: Implement getUpdateEvent() method.
+        $freeShippingUpdateEvent = new FreeShippingUpdateEvent($formData['id']);
+
+        $freeShippingUpdateEvent
+            ->setArea($formData['area'])
+            ->setAmount($formData['amount']);
+
+        return $freeShippingUpdateEvent;
     }
 
     /**
@@ -196,8 +212,13 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function getExistingObject()
     {
-        return FreeShippingQuery::create()
-            ->findOneByAreaId($this->areaId);
+        if(null !== $this->areaId){
+            return FreeShippingQuery::create()
+                ->findOneByAreaId($this->areaId);
+        } else {
+            return FreeShippingQuery::create()
+                ->findOneById($this->getRequest()->get('ruleId', 0));
+        }
     }
 
     /**
@@ -230,12 +251,19 @@ class FreeShippingController extends AbstractCrudController
         // TODO: Implement renderListTemplate() method.
     }
 
+    protected function getEditionArguments()
+    {
+        return array(
+            'ruleId' => $this->getRequest()->get('ruleId', 0)
+        );
+    }
+
     /**
      * Render the edition template
      */
     protected function renderEditionTemplate()
     {
-        // TODO: Implement renderEditionTemplate() method.
+        return $this->render('rule-edit', $this->getEditionArguments());
     }
 
     /**
@@ -243,6 +271,8 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function redirectToEditionTemplate()
     {
+        var_dump('ok');
+        die();
         // TODO: Implement redirectToEditionTemplate() method.
     }
 
