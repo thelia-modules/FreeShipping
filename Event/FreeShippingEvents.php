@@ -45,6 +45,10 @@ class FreeShippingEvents extends ActionEvent
      * @var
      */
     protected $amount;
+    /**
+     * @var
+     */
+    protected $rule;
 
     /**
      * @param $amount
@@ -91,6 +95,34 @@ class FreeShippingEvents extends ActionEvent
     public function getArea()
     {
         return $this->area;
+    }
+
+    /**
+     * @param mixed $rule
+     */
+    public function setRule($rule)
+    {
+        $this->rule = $rule;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRule()
+    {
+        return $this->rule;
+    }
+
+    /**
+     * check if rule exists
+     *
+     * @return bool
+     */
+    public function hasRule()
+    {
+        return null !== $this->rule;
     }
 
 }

@@ -194,7 +194,7 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function eventContainsObject($event)
     {
-        // TODO: Implement eventContainsObject() method.
+        return $event->hasRule();
     }
 
     /**
@@ -204,7 +204,7 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function getObjectFromEvent($event)
     {
-        // TODO: Implement getObjectFromEvent() method.
+        return $event->getRuleId();
     }
 
     /**
@@ -271,9 +271,8 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function redirectToEditionTemplate()
     {
-        var_dump('ok');
-        die();
-        // TODO: Implement redirectToEditionTemplate() method.
+        $args = $this->getEditionArguments();
+        $this->redirect('/admin/module/FreeShipping/update/'.$args['ruleId']);
     }
 
     /**
@@ -282,6 +281,11 @@ class FreeShippingController extends AbstractCrudController
     protected function redirectToListTemplate()
     {
         $this->redirect('/admin/module/FreeShipping');
+    }
+
+    protected function performAdditionalUpdateAction($updateEvent)
+    {
+        $this->redirectToListTemplate();
     }
 
 

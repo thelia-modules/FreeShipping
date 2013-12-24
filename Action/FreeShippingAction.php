@@ -70,7 +70,7 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
                 ->setAmount($event->getAmount())
                 ->save();
 
-            $event->setRuleId($freeShipping);
+            $event->setRule($freeShipping);
         }
     }
 
