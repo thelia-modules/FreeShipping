@@ -21,108 +21,29 @@
 /*                                                                                   */
 /*************************************************************************************/
 
-namespace FreeShipping\Event;
+namespace FreeShipping\Form;
 
-use Thelia\Core\Event\ActionEvent;
+use Symfony\Component\Validator\Constraints\GreaterThan;
 
 /**
- *
- * This class contains all FreeShipping events identifiers used by FreeShipping Core
- *
+ * Class FreeShippingRuleModificationForm
+ * @package Thelia\Form
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
-
-class FreeShippingEvents extends ActionEvent
+class FreeShippingRuleModificationForm extends FreeShippingRuleCreationForm
 {
 
-    const FREE_SHIPPING_RULE_CREATE = 'freeShipping.action.rule.create';
-
-    /**
-     * @var
-     */
-    protected $area;
-    /**
-     * @var
-     */
-    protected $amount;
-    /**
-     * @var
-     */
-    protected $rule;
-
-    /**
-     * @param $amount
-     * @param $area
-     */
-    public function __construct($amount, $area)
+    protected function buildForm()
     {
-        $this->amount = $amount;
-        $this->area = $area;
+        parent::buildForm();
+
+        $this->formBuilder
+            ->add("id", "hidden", array("constraints" => array(new GreaterThan(array('value' => 0)))))
+        ;
     }
 
-
-    /**
-     * @param mixed $amount
-     */
-    public function setAmount($amount)
+    public function getName()
     {
-        $this->amount = $amount;
-
-        return $this;
+        return "admin_free_shipping_rule_modification";
     }
-
-    /**
-     * @return mixed
-     */
-    public function getAmount()
-    {
-        return $this->amount;
-    }
-
-    /**
-     * @param mixed $area
-     */
-    public function setArea($area)
-    {
-        $this->area = $area;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getArea()
-    {
-        return $this->area;
-    }
-
-    /**
-     * @param mixed $rule
-     */
-    public function setRule($rule)
-    {
-        $this->rule = $rule;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRule()
-    {
-        return $this->rule;
-    }
-
-    /**
-     * check if rule exists
-     *
-     * @return bool
-     */
-    public function hasRule()
-    {
-        return null !== $this->rule;
-    }
-
 }

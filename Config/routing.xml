@@ -12,4 +12,13 @@
         <default key="_controller">FreeShipping\Controller\Admin\FreeShippingController::deleteAction</default>
     </route>
 
+    <route id="admin.freeShipping.rule.edit" path="/admin/module/FreeShipping/update/{ruleId}">
+        <default key="_controller">FreeShipping\Controller\Admin\FreeShippingController::updateAction</default>
+        <requirement key="ruleId">\d+</requirement>
+    </route>
+
+    <route id="admin.freeShipping.rule.save" path="/admin/module/FreeShipping/save">
+        <default key="_controller">FreeShipping\Controller\Admin\FreeShippingController::processUpdateAction</default>
+    </route>
+
 </routes>

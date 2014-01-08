@@ -23,50 +23,28 @@
 
 namespace FreeShipping\Event;
 
-use Thelia\Core\Event\ActionEvent;
-
 /**
- *
- * This class contains all FreeShipping events identifiers used by FreeShipping Core
- *
+ * Class FreeShippingUpdateEvent
+ * @package FreeShipping\Event
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
-
-class FreeShippingEvents extends ActionEvent
+class FreeShippingUpdateEvent extends FreeShippingEvents
 {
+    const FREE_SHIPPING_RULE_UPDATE = 'freeShipping.action.rule.update';
 
-    const FREE_SHIPPING_RULE_CREATE = 'freeShipping.action.rule.create';
+    protected $ruleId;
 
-    /**
-     * @var
-     */
-    protected $area;
-    /**
-     * @var
-     */
-    protected $amount;
-    /**
-     * @var
-     */
-    protected $rule;
-
-    /**
-     * @param $amount
-     * @param $area
-     */
-    public function __construct($amount, $area)
+    public function __construct($ruleId)
     {
-        $this->amount = $amount;
-        $this->area = $area;
+        $this->ruleId = $ruleId;
     }
 
-
     /**
-     * @param mixed $amount
+     * @param mixed $ruleId
      */
-    public function setAmount($amount)
+    public function setRuleId($ruleId)
     {
-        $this->amount = $amount;
+        $this->ruleId = $ruleId;
 
         return $this;
     }
@@ -74,55 +52,10 @@ class FreeShippingEvents extends ActionEvent
     /**
      * @return mixed
      */
-    public function getAmount()
+    public function getRuleId()
     {
-        return $this->amount;
+        return $this->ruleId;
     }
 
-    /**
-     * @param mixed $area
-     */
-    public function setArea($area)
-    {
-        $this->area = $area;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getArea()
-    {
-        return $this->area;
-    }
-
-    /**
-     * @param mixed $rule
-     */
-    public function setRule($rule)
-    {
-        $this->rule = $rule;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRule()
-    {
-        return $this->rule;
-    }
-
-    /**
-     * check if rule exists
-     *
-     * @return bool
-     */
-    public function hasRule()
-    {
-        return null !== $this->rule;
-    }
 
 }

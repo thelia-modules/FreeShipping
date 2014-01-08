@@ -25,10 +25,12 @@ namespace FreeShipping\Action;
 
 use FreeShipping\Event\FreeShippingDeleteEvent;
 use FreeShipping\Event\FreeShippingEvents;
+use FreeShipping\Event\FreeShippingUpdateEvent;
 use FreeShipping\Model\FreeShipping;
 use FreeShipping\Model\FreeShippingQuery;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Thelia\Action\BaseAction;
+use Thelia\Model\Base\AreaQuery;
 
 /**
  *
@@ -53,15 +55,41 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
 
     }
 
+    public function updateRule(FreeShippingUpdateEvent $event)
+    {
+
+        $areaId = $event->getArea();
+        if (null === FreeShippingQuery::create()->findOneByAreaId($areaId)) {
+
+            $id = $event->getRuleId();
+
+            if (null !== $freeShipping = FreeShippingQuery::create()->findPk($id)) {
+
+                $freeShipping->setDispatcher($this->getDispatcher());
+
+                $freeShipping
+                    ->setAreaId($event->getArea())
+                    ->setAmount($event->getAmount())
+                    ->save();
+
+                $event->setRule($freeShipping);
+            }
+
+        } else {
+            $area = AreaQuery::create()->findOneById($areaId);
+
+            throw new \Exception(sprintf("A free shipping rule already exists for the '%s' area", $area->getName()));
+        }
+
+
+    }
+
     public function deleteRule(FreeShippingDeleteEvent $event)
     {
 
-        $rule = FreeShippingQuery::create()->findOneById($event->getFreeShippingId());
+        $id = $event->getFreeShippingId();
 
-        $id = $rule->getId();
-        $areaId = $rule->getAreaId();
-
-        if (null !== $freeShipping = FreeShippingQuery::create()->findPk(array($id, $areaId))) {
+        if (null !== $freeShipping = FreeShippingQuery::create()->findPk($id)) {
 
             $freeShipping->setDispatcher($this->getDispatcher())
                 ->delete();
@@ -94,6 +122,7 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
     {
         return array(
             FreeShippingEvents::FREE_SHIPPING_RULE_CREATE      => array('createRule', 128),
+            FreeShippingUpdateEvent::FREE_SHIPPING_RULE_UPDATE => array('updateRule', 128),
             FreeShippingDeleteEvent::FREE_SHIPPING_RULE_DELETE => array('deleteRule', 128)
         );
     }

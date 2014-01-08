@@ -95,10 +95,10 @@ abstract class FreeShippingQuery extends ModelCriteria
      * Go fast if the query is untouched.
      *
      * <code>
-     * $obj = $c->findPk(array(12, 34), $con);
+     * $obj  = $c->findPk(12, $con);
      * </code>
      *
-     * @param array[$id, $area_id] $key Primary key to use for the query
+     * @param mixed $key Primary key to use for the query
      * @param ConnectionInterface $con an optional connection object
      *
      * @return ChildFreeShipping|array|mixed the result, formatted by the current formatter
@@ -108,7 +108,7 @@ abstract class FreeShippingQuery extends ModelCriteria
         if ($key === null) {
             return null;
         }
-        if ((null !== ($obj = FreeShippingTableMap::getInstanceFromPool(serialize(array((string) $key[0], (string) $key[1]))))) && !$this->formatter) {
+        if ((null !== ($obj = FreeShippingTableMap::getInstanceFromPool((string) $key))) && !$this->formatter) {
             // the object is already in the instance pool
             return $obj;
         }
@@ -136,11 +136,10 @@ abstract class FreeShippingQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT ID, AREA_ID, AMOUNT FROM free_shipping WHERE ID = :p0 AND AREA_ID = :p1';
+        $sql = 'SELECT ID, AREA_ID, AMOUNT FROM free_shipping WHERE ID = :p0';
         try {
             $stmt = $con->prepare($sql);
-            $stmt->bindValue(':p0', $key[0], PDO::PARAM_INT);
-            $stmt->bindValue(':p1', $key[1], PDO::PARAM_INT);
+            $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
             $stmt->execute();
         } catch (Exception $e) {
             Propel::log($e->getMessage(), Propel::LOG_ERR);
@@ -150,7 +149,7 @@ abstract class FreeShippingQuery extends ModelCriteria
         if ($row = $stmt->fetch(\PDO::FETCH_NUM)) {
             $obj = new ChildFreeShipping();
             $obj->hydrate($row);
-            FreeShippingTableMap::addInstanceToPool($obj, serialize(array((string) $key[0], (string) $key[1])));
+            FreeShippingTableMap::addInstanceToPool($obj, (string) $key);
         }
         $stmt->closeCursor();
 
@@ -179,7 +178,7 @@ abstract class FreeShippingQuery extends ModelCriteria
     /**
      * Find objects by primary key
      * <code>
-     * $objs = $c->findPks(array(array(12, 56), array(832, 123), array(123, 456)), $con);
+     * $objs = $c->findPks(array(12, 56, 832), $con);
      * </code>
      * @param     array $keys Primary keys to use for the query
      * @param     ConnectionInterface $con an optional connection object
@@ -209,10 +208,8 @@ abstract class FreeShippingQuery extends ModelCriteria
      */
     public function filterByPrimaryKey($key)
     {
-        $this->addUsingAlias(FreeShippingTableMap::ID, $key[0], Criteria::EQUAL);
-        $this->addUsingAlias(FreeShippingTableMap::AREA_ID, $key[1], Criteria::EQUAL);
 
-        return $this;
+        return $this->addUsingAlias(FreeShippingTableMap::ID, $key, Criteria::EQUAL);
     }
 
     /**
@@ -224,17 +221,8 @@ abstract class FreeShippingQuery extends ModelCriteria
      */
     public function filterByPrimaryKeys($keys)
     {
-        if (empty($keys)) {
-            return $this->add(null, '1<>1', Criteria::CUSTOM);
-        }
-        foreach ($keys as $key) {
-            $cton0 = $this->getNewCriterion(FreeShippingTableMap::ID, $key[0], Criteria::EQUAL);
-            $cton1 = $this->getNewCriterion(FreeShippingTableMap::AREA_ID, $key[1], Criteria::EQUAL);
-            $cton0->addAnd($cton1);
-            $this->addOr($cton0);
-        }
 
-        return $this;
+        return $this->addUsingAlias(FreeShippingTableMap::ID, $keys, Criteria::IN);
     }
 
     /**
@@ -447,9 +435,7 @@ abstract class FreeShippingQuery extends ModelCriteria
     public function prune($freeShipping = null)
     {
         if ($freeShipping) {
-            $this->addCond('pruneCond0', $this->getAliasedColName(FreeShippingTableMap::ID), $freeShipping->getId(), Criteria::NOT_EQUAL);
-            $this->addCond('pruneCond1', $this->getAliasedColName(FreeShippingTableMap::AREA_ID), $freeShipping->getAreaId(), Criteria::NOT_EQUAL);
-            $this->combine(array('pruneCond0', 'pruneCond1'), Criteria::LOGICAL_OR);
+            $this->addUsingAlias(FreeShippingTableMap::ID, $freeShipping->getId(), Criteria::NOT_EQUAL);
         }
 
         return $this;

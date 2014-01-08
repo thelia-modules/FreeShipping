@@ -29,6 +29,7 @@
                             <td class="actions">
                                 <div class="btn-group">
                                     {loop type="auth" name="can_change" role="ADMIN" module="freeShipping" access="UPDATE"}
+                                        <a class="btn btn-default btn-xs" title="{intl l='Edit this rule'}" href="{url path="/admin/module/FreeShipping/update/$ID"}"><span class="glyphicon glyphicon-edit"></span></a>
                                         <a class="btn btn-default btn-xs rule-delete" title="{intl l='Delete this rule'}" href="#rule_delete_dialog" data-toggle="modal" data-id="{$ID}"><span class="glyphicon glyphicon-trash"></span></a>
                                     {/loop}
                                 </div>
