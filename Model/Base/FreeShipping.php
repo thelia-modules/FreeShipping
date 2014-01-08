@@ -843,10 +843,10 @@ abstract class FreeShipping implements ActiveRecordInterface
      */
     public function toArray($keyType = TableMap::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
     {
-        if (isset($alreadyDumpedObjects['FreeShipping'][serialize($this->getPrimaryKey())])) {
+        if (isset($alreadyDumpedObjects['FreeShipping'][$this->getPrimaryKey()])) {
             return '*RECURSION*';
         }
-        $alreadyDumpedObjects['FreeShipping'][serialize($this->getPrimaryKey())] = true;
+        $alreadyDumpedObjects['FreeShipping'][$this->getPrimaryKey()] = true;
         $keys = FreeShippingTableMap::getFieldNames($keyType);
         $result = array(
             $keys[0] => $this->getId(),
@@ -962,35 +962,28 @@ abstract class FreeShipping implements ActiveRecordInterface
     {
         $criteria = new Criteria(FreeShippingTableMap::DATABASE_NAME);
         $criteria->add(FreeShippingTableMap::ID, $this->id);
-        $criteria->add(FreeShippingTableMap::AREA_ID, $this->area_id);
 
         return $criteria;
     }
 
     /**
-     * Returns the composite primary key for this object.
-     * The array elements will be in same order as specified in XML.
-     * @return array
+     * Returns the primary key for this object (row).
+     * @return   int
      */
     public function getPrimaryKey()
     {
-        $pks = array();
-        $pks[0] = $this->getId();
-        $pks[1] = $this->getAreaId();
-
-        return $pks;
+        return $this->getId();
     }
 
     /**
-     * Set the [composite] primary key.
+     * Generic method to set the primary key (id column).
      *
-     * @param      array $keys The elements of the composite key (order must match the order in XML file).
+     * @param       int $key Primary key.
      * @return void
      */
-    public function setPrimaryKey($keys)
+    public function setPrimaryKey($key)
     {
-        $this->setId($keys[0]);
-        $this->setAreaId($keys[1]);
+        $this->setId($key);
     }
 
     /**
@@ -1000,7 +993,7 @@ abstract class FreeShipping implements ActiveRecordInterface
     public function isPrimaryKeyNull()
     {
 
-        return (null === $this->getId()) && (null === $this->getAreaId());
+        return null === $this->getId();
     }
 
     /**

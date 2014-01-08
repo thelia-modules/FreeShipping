@@ -14,7 +14,7 @@ CREATE TABLE `free_shipping`
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `area_id` INTEGER NOT NULL,
     `amount` INTEGER NOT NULL,
-    PRIMARY KEY (`id`,`area_id`),
+    PRIMARY KEY (`id`),
     INDEX `FI_area_associated_freeShipping_area_id` (`area_id`),
     CONSTRAINT `fk_area_associated_freeShipping_area_id`
         FOREIGN KEY (`area_id`)
