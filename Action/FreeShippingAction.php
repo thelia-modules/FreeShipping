@@ -23,6 +23,7 @@
 
 namespace FreeShipping\Action;
 
+use Thelia\Form\Exception\FormValidationException;
 use FreeShipping\Event\FreeShippingDeleteEvent;
 use FreeShipping\Event\FreeShippingEvents;
 use FreeShipping\Event\FreeShippingUpdateEvent;
@@ -78,7 +79,7 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
         } else {
             $area = AreaQuery::create()->findOneById($areaId);
 
-            throw new \Exception(sprintf("A free shipping rule already exists for the '%s' area", $area->getName()));
+            throw new FormValidationException(sprintf("A free shipping rule already exists for the '%s' area", $area->getName()));
         }
 
 
