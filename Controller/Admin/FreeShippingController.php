@@ -31,6 +31,7 @@ use FreeShipping\Form\FreeShippingRuleModificationForm;
 use Propel\Runtime\Exception\PropelException;
 use Thelia\Controller\Admin\AbstractCrudController;
 use Thelia\Controller\Admin\unknown;
+use Thelia\Core\Security\AccessManager;
 use Thelia\Form\Exception\FormValidationException;
 use FreeShipping\Model\FreeShippingQuery;
 
@@ -62,6 +63,10 @@ class FreeShippingController extends AbstractCrudController
     }
 
     public function createRuleAction(){
+
+        if (null !== $response = $this->checkAuth(array(), array('FreeShipping'), AccessManager::CREATE)) {
+            return $response;
+        }
 
         $ruleCreationForm = new FreeShippingRuleCreationForm($this->getRequest());
 
