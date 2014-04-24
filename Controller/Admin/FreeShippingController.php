@@ -277,7 +277,7 @@ class FreeShippingController extends AbstractCrudController
     protected function redirectToEditionTemplate()
     {
         $args = $this->getEditionArguments();
-        $this->redirect('/admin/module/FreeShipping/update/'.$args['ruleId']);
+        $this->redirectToRoute("admin.freeShipping.rule.edit", [], ["ruleId" => $args['ruleId']]);
     }
 
     /**
@@ -285,7 +285,7 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function redirectToListTemplate()
     {
-        $this->redirect('/admin/module/FreeShipping');
+        $this->redirectToRoute("admin.module.configure", [], ["module_code" => "FreeShipping"]);
     }
 
     protected function performAdditionalUpdateAction($updateEvent)
