@@ -22,10 +22,10 @@
 /*************************************************************************************/
 namespace FreeShipping\Form;
 
+use Symfony\Component\Validator\Constraints;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\BaseForm;
-use Symfony\Component\Validator\Constraints;
 
 /**
  * Class FreeShippingRuleCreationForm

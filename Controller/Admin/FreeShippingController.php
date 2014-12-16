@@ -28,12 +28,12 @@ use FreeShipping\Event\FreeShippingEvents;
 use FreeShipping\Event\FreeShippingUpdateEvent;
 use FreeShipping\Form\FreeShippingRuleCreationForm;
 use FreeShipping\Form\FreeShippingRuleModificationForm;
+use FreeShipping\Model\FreeShippingQuery;
 use Propel\Runtime\Exception\PropelException;
 use Thelia\Controller\Admin\AbstractCrudController;
 use Thelia\Controller\Admin\unknown;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Form\Exception\FormValidationException;
-use FreeShipping\Model\FreeShippingQuery;
 
 /**
  * Class FreeShippingController
