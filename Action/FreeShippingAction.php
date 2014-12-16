@@ -30,7 +30,7 @@ use FreeShipping\Model\FreeShipping;
 use FreeShipping\Model\FreeShippingQuery;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Thelia\Action\BaseAction;
-use Thelia\Model\Base\AreaQuery;
+use Thelia\Model\AreaQuery;
 
 /**
  *
