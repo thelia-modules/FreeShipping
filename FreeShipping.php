@@ -146,4 +146,20 @@ class FreeShipping extends AbstractDeliveryModule
     {
         return true;
     }
+    
+    /**
+     * This method is called by the Delivery  loop, to check if the current module has to be displayed to the customer.
+     * Override it to implements your delivery rules/
+     *
+     * If you return true, the delivery method will de displayed to the customer
+     * If you return false, the delivery method will not be displayed
+     *
+     * @param Country $country the country to deliver to.
+     *
+     * @return boolean
+     */
+    public function isValidDelivery(Country $country)
+    {
+        // TODO: Implement isValidDelivery() method.
+    }
 }
