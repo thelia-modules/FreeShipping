@@ -28,67 +28,21 @@ use Propel\Runtime\Connection\ConnectionInterface;
 use Thelia\Install\Database;
 use Thelia\Model\AreaQuery;
 use Thelia\Model\Country;
-use Thelia\Module\BaseModule;
-use Thelia\Module\DeliveryModuleInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\Request;
-
+use Thelia\Module\AbstractDeliveryModule;
 
 /**
  * Class FreeShipping
  * @package FreeShipping
  */
-class FreeShipping extends BaseModule implements DeliveryModuleInterface
+class FreeShipping extends AbstractDeliveryModule
 {
-
-    /**
-     * @var
-     */
-    protected $request;
-    /**
-     * @var
-     */
-    protected $dispatcher;
-
-    /**
-     * @param Request $request
-     */
-    public function setRequest(Request $request)
-    {
-        $this->request = $request;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRequest()
-    {
-        return $this->request;
-    }
-
-    /**
-     * @param EventDispatcherInterface $dispatcher
-     */
-    public function setDispatcher(EventDispatcherInterface $dispatcher)
-    {
-        $this->dispatcher = $dispatcher;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDispatcher()
-    {
-        return $this->dispatcher;
-    }
-
     /**
      * @param ConnectionInterface $con
      */
     public function postActivation(ConnectionInterface $con = null)
     {
         $database = new Database($con->getWrappedConnection());
-        $database->insertSql(null, array(THELIA_ROOT . '/local/modules/FreeShipping/Config/thelia.sql'));
+        $database->insertSql(null, [ __DIR__.DS.'Config'.DS.'thelia.sql' ]);
     }
 
 
@@ -101,7 +55,7 @@ class FreeShipping extends BaseModule implements DeliveryModuleInterface
      */
     public function getPostage(Country $country)
     {
-        $cart = $this->getContainer()->get('request')->getSession()->getCart();
+        $cart = $this->getRequest()->getSession()->getSessionCart($this->getDispatcher());
 
         $amount = $cart->getTotalAmount();
         $areaId = $country->getAreaId();
@@ -109,10 +63,9 @@ class FreeShipping extends BaseModule implements DeliveryModuleInterface
         $area = FreeShippingQuery::create()->findOneByAreaId($areaId);
         $maxAmount = $area->getAmount();
 
-        if($amount >= $maxAmount){
+        if ($amount >= $maxAmount) {
             $postage = 0;
-        }
-        else{
+        } else {
             $area = AreaQuery::create()->findPk($areaId);
 
             $postage = $area->getPostage();
@@ -130,4 +83,19 @@ class FreeShipping extends BaseModule implements DeliveryModuleInterface
         return 'FreeShipping';
     }
 
+    /**
+     * This method is called by the Delivery  loop, to check if the current module has to be displayed to the customer.
+     * Override it to implements your delivery rules/
+     *
+     * If you return true, the delivery method will de displayed to the customer
+     * If you return false, the delivery method will not be displayed
+     *
+     * @param Country $country the country to deliver to.
+     *
+     * @return boolean
+     */
+    public function isValidDelivery(Country $country)
+    {
+        return true;
+    }
 }
