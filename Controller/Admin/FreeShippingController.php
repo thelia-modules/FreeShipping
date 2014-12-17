@@ -94,12 +94,15 @@ class FreeShippingController extends AbstractCrudController
         if ($message !== false) {
             \Thelia\Log\Tlog::getInstance()->error(sprintf("Error during free shipping rule creation process : %s.", $message));
 
-            $ruleCreationForm->setErrorMessage($message);
+            $this->setupFormErrorContext(
+                $this->getTranslator()->trans("%obj creation", array('%obj' => $this->objectName)),
+                $message,
+                $ruleCreationForm,
+                $e
+            );
 
-            $this->getParserContext()
-                ->addForm($ruleCreationForm)
-                ->setGeneralError($message)
-            ;
+            // At this point, the form has error, and should be redisplayed.
+            return $this->renderList();
         }
 
     }
@@ -188,26 +191,6 @@ class FreeShippingController extends AbstractCrudController
     }
 
     /**
-     * Return true if the event contains the object, e.g. the action has updated the object in the event.
-     *
-     * @param unknown $event
-     */
-    protected function eventContainsObject($event)
-    {
-        return $event->hasRule();
-    }
-
-    /**
-     * Get the created object from an event.
-     *
-     * @param unknown $event
-     */
-    protected function getObjectFromEvent($event)
-    {
-        return $event->getRuleId();
-    }
-
-    /**
      * Load an existing object from the database
      */
     protected function getExistingObject()
@@ -244,11 +227,10 @@ class FreeShippingController extends AbstractCrudController
     /**
      * Render the main list template
      *
-     * @param unknown $currentOrder , if any, null otherwise.
      */
-    protected function renderListTemplate($currentOrder)
+    protected function renderList()
     {
-        // TODO: Implement renderListTemplate() method.
+        return $this->redirectToListTemplate();
     }
 
     protected function getEditionArguments()
@@ -289,4 +271,33 @@ class FreeShippingController extends AbstractCrudController
     }
 
 
+    /**
+     * Return true if the event contains the object, e.g. the action has updated the object in the event.
+     *
+     * @param unknown $event
+     */
+    protected function eventContainsObject($event)
+    {
+        return $event->hasRule();
+    }
+
+    /**
+     * Get the created object from an event.
+     *
+     * @param unknown $event
+     */
+    protected function getObjectFromEvent($event)
+    {
+        // TODO: Implement getObjectFromEvent() method.
+    }
+
+    /**
+     * Render the main list template
+     *
+     * @param unknown $currentOrder , if any, null otherwise.
+     */
+    protected function renderListTemplate($currentOrder)
+    {
+        // TODO: Implement renderListTemplate() method.
+    }
 }
