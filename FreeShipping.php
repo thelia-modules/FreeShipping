@@ -143,6 +143,6 @@ class FreeShipping extends BaseModule implements DeliveryModuleInterface
      */
     public function isValidDelivery(Country $country)
     {
-        // TODO: Implement isValidDelivery() method.
+        return $country;
     }
 }
