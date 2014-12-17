@@ -59,15 +59,13 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
     {
 
         $areaId = $event->getArea();
-        $ruleId = FreeShippingQuery::create()->findOneByAreaId($areaId);
-
-        if (null === $ruleId || $event->getRuleId() != $ruleId) {
+        if (null === FreeShippingQuery::create()->findOneByAreaId($areaId)) {
 
             $id = $event->getRuleId();
 
             if (null !== $freeShipping = FreeShippingQuery::create()->findPk($id)) {
 
-                $freeShipping->setDispatcher($event->getDispatcher());
+                $freeShipping->setDispatcher($this->getDispatcher());
 
                 $freeShipping
                     ->setAreaId($event->getArea())
@@ -93,7 +91,7 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
 
         if (null !== $freeShipping = FreeShippingQuery::create()->findPk($id)) {
 
-            $freeShipping->setDispatcher($event->getDispatcher())
+            $freeShipping->setDispatcher($this->getDispatcher())
                 ->delete();
 
         }

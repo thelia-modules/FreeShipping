@@ -32,8 +32,9 @@ use Thelia\Core\Template\Element\PropelSearchLoopInterface;
 use Thelia\Core\Template\Loop\Argument\Argument;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
 use Thelia\Model\Base\AreaQuery;
-use Thelia\Type;
+use Thelia\Model\Map\ContentTableMap;
 use Thelia\Type\TypeCollection;
+use Thelia\Type;
 
 /**
  *

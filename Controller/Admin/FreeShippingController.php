@@ -28,12 +28,11 @@ use FreeShipping\Event\FreeShippingEvents;
 use FreeShipping\Event\FreeShippingUpdateEvent;
 use FreeShipping\Form\FreeShippingRuleCreationForm;
 use FreeShipping\Form\FreeShippingRuleModificationForm;
-use FreeShipping\Model\FreeShippingQuery;
 use Propel\Runtime\Exception\PropelException;
 use Thelia\Controller\Admin\AbstractCrudController;
 use Thelia\Controller\Admin\unknown;
-use Thelia\Core\Security\AccessManager;
 use Thelia\Form\Exception\FormValidationException;
+use FreeShipping\Model\FreeShippingQuery;
 
 /**
  * Class FreeShippingController
@@ -63,10 +62,6 @@ class FreeShippingController extends AbstractCrudController
     }
 
     public function createRuleAction(){
-
-        if (null !== $response = $this->checkAuth(array(), array('FreeShipping'), AccessManager::CREATE)) {
-            return $response;
-        }
 
         $ruleCreationForm = new FreeShippingRuleCreationForm($this->getRequest());
 
@@ -277,7 +272,7 @@ class FreeShippingController extends AbstractCrudController
     protected function redirectToEditionTemplate()
     {
         $args = $this->getEditionArguments();
-        $this->redirectToRoute("admin.freeShipping.rule.edit", [], ["ruleId" => $args['ruleId']]);
+        $this->redirect('/admin/module/FreeShipping/update/'.$args['ruleId']);
     }
 
     /**
@@ -285,7 +280,7 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function redirectToListTemplate()
     {
-        $this->redirectToRoute("admin.module.configure", [], ["module_code" => "FreeShipping"]);
+        $this->redirect('/admin/module/FreeShipping');
     }
 
     protected function performAdditionalUpdateAction($updateEvent)
