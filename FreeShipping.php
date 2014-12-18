@@ -101,25 +101,7 @@ class FreeShipping extends BaseModule implements DeliveryModuleInterface
      */
     public function getPostage(Country $country)
     {
-        $cart = $this->getContainer()->get('request')->getSession()->getCart();
-
-        $amount = $cart->getTotalAmount();
-        $areaId = $country->getAreaId();
-
-        $area = FreeShippingQuery::create()->findOneByAreaId($areaId);
-        $maxAmount = $area->getAmount();
-
-        if($amount >= $maxAmount){
-            $postage = 0;
-        }
-        else{
-            $area = AreaQuery::create()->findPk($areaId);
-
-            $postage = $area->getPostage();
-        }
-
-        return $postage;
-
+        return 0;
     }
 
     /**
@@ -143,6 +125,18 @@ class FreeShipping extends BaseModule implements DeliveryModuleInterface
      */
     public function isValidDelivery(Country $country)
     {
-        return $country;
+        $cart = $this->getContainer()->get('request')->getSession()->getCart();
+
+        $amount = $cart->getTotalAmount();
+        $areaId = $country->getAreaId();
+
+        $area = FreeShippingQuery::create()->findOneByAreaId($areaId);
+        $maxAmount = $area->getAmount();
+
+        if($amount >= $maxAmount){
+            return true;
+        } else {
+            return false;
+        }
     }
 }
