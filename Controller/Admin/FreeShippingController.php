@@ -82,7 +82,7 @@ class FreeShippingController extends AbstractCrudController
 
             if(null === $this->getExistingObject()){
                 $this->dispatch(FreeShippingEvents::FREE_SHIPPING_RULE_CREATE, $event);
-                $this->redirectSuccess($ruleCreationForm);
+                return $this->generateSuccessRedirect($ruleCreationForm);
             }
             else{
                 throw new \Exception("A rule with this area already exist");
@@ -97,7 +97,9 @@ class FreeShippingController extends AbstractCrudController
         }
 
         if ($message !== false) {
-            \Thelia\Log\Tlog::getInstance()->error(sprintf("Error during free shipping rule creation process : %s.", $message));
+            \Thelia\Log\Tlog::getInstance()->error(
+                sprintf("Error during free shipping rule creation process : %s.", $message)
+            );
 
             $ruleCreationForm->setErrorMessage($message);
 
@@ -106,6 +108,11 @@ class FreeShippingController extends AbstractCrudController
                 ->setGeneralError($message)
             ;
         }
+
+        // Redirect
+        return $this->generateRedirectFromRoute(
+            'admin.module.configure', array(), array('module_code' => 'FreeShipping')
+        );
 
     }
 
@@ -209,7 +216,7 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function getObjectFromEvent($event)
     {
-        return $event->getRuleId();
+        return $event->getRule();
     }
 
     /**
@@ -277,7 +284,7 @@ class FreeShippingController extends AbstractCrudController
     protected function redirectToEditionTemplate()
     {
         $args = $this->getEditionArguments();
-        $this->redirectToRoute("admin.freeShipping.rule.edit", [], ["ruleId" => $args['ruleId']]);
+        return $this->generateRedirectFromRoute("admin.freeShipping.rule.edit", [], ["ruleId" => $args['ruleId']]);
     }
 
     /**
@@ -285,12 +292,12 @@ class FreeShippingController extends AbstractCrudController
      */
     protected function redirectToListTemplate()
     {
-        $this->redirectToRoute("admin.module.configure", [], ["module_code" => "FreeShipping"]);
+        return $this->generateRedirectFromRoute("admin.module.configure", [], ["module_code" => "FreeShipping"]);
     }
 
     protected function performAdditionalUpdateAction($updateEvent)
     {
-        $this->redirectToListTemplate();
+        return $this->redirectToListTemplate();
     }
 
 

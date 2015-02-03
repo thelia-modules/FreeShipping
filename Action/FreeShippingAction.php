@@ -48,10 +48,18 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
     {
         $rule = new FreeShipping();
 
-        $rule
-            ->setAmount($event->getAmount())
-            ->setAreaId($event->getArea())
-            ->save();
+        $freeShippingArea = FreeShippingQuery::create()->findOneByAreaId($event->getArea());
+
+        if (null === $freeShippingArea) {
+            $rule
+                ->setAmount($event->getAmount())
+                ->setAreaId($event->getArea())
+                ->save();
+        } else {
+            $area = AreaQuery::create()->findOneById($event->getArea());
+
+            throw new \Exception(sprintf("A free shipping rule already exists for the '%s' area", $area->getName()));
+        }
 
     }
 
@@ -59,13 +67,15 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
     {
 
         $areaId = $event->getArea();
-        if (null === FreeShippingQuery::create()->findOneByAreaId($areaId)) {
+        $freeShippingArea = FreeShippingQuery::create()->findOneByAreaId($areaId);
+
+        if (null === $freeShippingArea || $freeShippingArea->getAmount() !== $event->getAmount() ) {
 
             $id = $event->getRuleId();
 
             if (null !== $freeShipping = FreeShippingQuery::create()->findPk($id)) {
 
-                $freeShipping->setDispatcher($this->getDispatcher());
+                $freeShipping->setDispatcher($event->getDispatcher());
 
                 $freeShipping
                     ->setAreaId($event->getArea())
@@ -91,7 +101,7 @@ class FreeShippingAction extends BaseAction implements EventSubscriberInterface
 
         if (null !== $freeShipping = FreeShippingQuery::create()->findPk($id)) {
 
-            $freeShipping->setDispatcher($this->getDispatcher())
+            $freeShipping->setDispatcher($event->getDispatcher())
                 ->delete();
 
         }

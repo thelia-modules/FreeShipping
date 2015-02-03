@@ -55,24 +55,7 @@ class FreeShipping extends AbstractDeliveryModule
      */
     public function getPostage(Country $country)
     {
-        $cart = $this->getRequest()->getSession()->getSessionCart($this->getDispatcher());
-
-        $amount = $cart->getTotalAmount();
-        $areaId = $country->getAreaId();
-
-        $area = FreeShippingQuery::create()->findOneByAreaId($areaId);
-        $maxAmount = $area->getAmount();
-
-        if ($amount >= $maxAmount) {
-            $postage = 0;
-        } else {
-            $area = AreaQuery::create()->findPk($areaId);
-
-            $postage = $area->getPostage();
-        }
-
-        return $postage;
-
+        return 0;
     }
 
     /**
@@ -96,6 +79,18 @@ class FreeShipping extends AbstractDeliveryModule
      */
     public function isValidDelivery(Country $country)
     {
-        return true;
+        $cart = $this->getRequest()->getSession()->getSessionCart($this->getDispatcher());
+
+        $amount = $cart->getTaxedAmount($country);
+        $areaId = $country->getAreaId();
+
+        $area = FreeShippingQuery::create()->findOneByAreaId($areaId);
+        $maxAmount = $area->getAmount();
+
+        if ($amount >= $maxAmount) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

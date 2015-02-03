@@ -107,6 +107,6 @@ dialog_id       = "rule_delete_dialog"
 dialog_title    = {intl l="Delete this rule"}
 dialog_message  = {intl l="Do you really want to delete this rule ?"}
 
-form_action         = {url path='/admin/module/FreeShipping/delete'}
+form_action         = {token_url path='/admin/module/FreeShipping/delete'}
 form_content        = {$smarty.capture.rule_delete_dialog nofilter}
 }

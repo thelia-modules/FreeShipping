@@ -7,12 +7,12 @@
     <descriptive locale="fr_FR">
         <title>Franco de port</title>
     </descriptive>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <author>
         <name>Michaël Espeche</name>
         <email>mespeche@openstudio.fr</email>
     </author>
     <type>delivery</type>
-    <thelia>2.0.0</thelia>
+    <thelia>2.1.0</thelia>
     <stability>alpha</stability>
 </module>
