@@ -42,7 +42,7 @@ class FreeShipping extends AbstractDeliveryModule
     public function postActivation(ConnectionInterface $con = null)
     {
         $database = new Database($con->getWrappedConnection());
-        $database->insertSql(null, [ __DIR__.DS.'Config'.DS.'thelia.sql' ]);
+        $database->insertSql(null, [__DIR__ . DS . 'Config' . DS . 'thelia.sql']);
     }
 
 
@@ -85,12 +85,14 @@ class FreeShipping extends AbstractDeliveryModule
         $areaId = $country->getAreaId();
 
         $area = FreeShippingQuery::create()->findOneByAreaId($areaId);
-        $maxAmount = $area->getAmount();
+        if (isset($area)) {
+            $maxAmount = $area->getAmount();
 
-        if ($amount >= $maxAmount) {
-            return true;
-        } else {
-            return false;
+            if ($amount >= $maxAmount) {
+                return true;
+            }
         }
+
+        return false;
     }
 }
