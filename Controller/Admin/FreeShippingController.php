@@ -33,6 +33,7 @@ use Propel\Runtime\Exception\PropelException;
 use Thelia\Controller\Admin\AbstractCrudController;
 use Thelia\Controller\Admin\unknown;
 use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Form\Exception\FormValidationException;
 
 /**
@@ -52,13 +53,14 @@ class FreeShippingController extends AbstractCrudController
             'manual',
             'freeShipping_order',
 
-            'admin.freeShipping',
+            [],
 
             FreeShippingEvents::FREE_SHIPPING_RULE_CREATE,
             FreeShippingUpdateEvent::FREE_SHIPPING_RULE_UPDATE,
             FreeShippingDeleteEvent::FREE_SHIPPING_RULE_DELETE,
             null,
-            null
+            null,
+            'FreeShipping'
         );
     }
 
