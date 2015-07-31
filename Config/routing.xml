@@ -21,4 +21,8 @@
         <default key="_controller">FreeShipping\Controller\Admin\FreeShippingController::processUpdateAction</default>
     </route>
 
+    <route id="admin.freeshipping.export" path="/admin/module/freeshipping/export" methods="post">
+        <default key="_controller">FreeShipping\Controller\Admin\Export::export</default>
+    </route>
+
 </routes>

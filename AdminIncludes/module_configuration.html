@@ -1,48 +1,162 @@
+{assign var="tab" value="export"}
+{if isset($smarty.get.current_tab)}
+    {assign var="tab" value=$smarty.get.current_tab}
+{/if}
 <div class="row">
     <div class="col-md-12">
 
         <div class="general-block-decorator">
+            <div class="row">
+                <div class="col-md-12">
+                    <ul id="tabbed-menu" class="nav nav-tabs">
+                        <li class="{if $tab eq "export"}active{/if}"><a data-toggle="tab" href="#export">{intl l="Export" d='freeshipping.ai'}</a> </li>
+                        <li class="{if $tab eq "rule"}active{/if}"><a data-toggle="tab" href="#rule">{intl l="Configure FreeShipping rule" d='freeshipping.ai'}</a></li>
+                    </ul>
 
-
-            <div class="table-responsive">
-                <table class="table table-striped table-condensed table-left-aligned">
-                    <caption class="clearfix">
-                        {intl l="Free carriage rules"}
-                        {loop type="auth" name="can_create" role="ADMIN" module="freeShipping" access="CREATE"}
-                            <a class="btn btn-default btn-primary pull-right" title="{intl l='Create a new rule'}" href="#rule_create_dialog" data-toggle="modal">
-                                <span class="glyphicon glyphicon-plus"></span>
-                            </a>
-                        {/loop}
-                    </caption>
-                    <thead>
-                    <tr>
-                        <th>{intl l="Area"}</th>
-                        <th>{intl l="Amount up to ... (€)"}</th>
-                        <th class="actions">{intl l="Actions"}</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        {loop name="rules" type="free_shipping"}
-                        <tr>
-                            <td><a href="{url path="/admin/configuration/shipping_configuration/update/$AREA_ID"}">{$AREA_NAME}</a></td>
-                            <td>{$AMOUNT}</td>
-                            <td class="actions">
-                                <div class="btn-group">
-                                    {loop type="auth" name="can_change" role="ADMIN" module="freeShipping" access="UPDATE"}
-                                        <a class="btn btn-default btn-xs" title="{intl l='Edit this rule'}" href="{url path="/admin/module/FreeShipping/update/$ID"}"><span class="glyphicon glyphicon-edit"></span></a>
-                                        <a class="btn btn-default btn-xs rule-delete" title="{intl l='Delete this rule'}" href="#rule_delete_dialog" data-toggle="modal" data-id="{$ID}"><span class="glyphicon glyphicon-trash"></span></a>
-                                    {/loop}
+                    <div class="tab-content">
+                        <div id="export" class="tab-pane {if $tab eq "export"}active{/if} form-container">
+                            <div class="panel panel-default">
+                                <div class="panel-heading clearfix">
+                                    {intl l="operations" d='freeshipping.ai'}
                                 </div>
-                            </td>
-                        </tr>
-                        {/loop}
-                    </tbody>
-                </table>
+                                <div class="panel-body">
+                                    <button id="check-all-but" title="{intl l="Check all" d='freeshipping.ai'}" class="form-submit-button btn btn-sm btn-default">{intl l="Check all" d='freeshipping.ai'}</button>
+                                    <button id="uncheck-all-but" title="{intl l="Uncheck all" d='freeshipping.ai'}" class="form-submit-button btn btn-sm btn-default">{intl l="Uncheck all" d='freeshipping.ai'}</button>
+                                    <button id="reverse-all-but" title="{intl l="Reverse selection" d='freeshipping.ai'}" class="form-submit-button btn btn-sm btn-default">{intl l="Reverse selection" d='freeshipping.ai'}</button>
+                                </div>
+                            </div>
+                            {form name="freeShipping.export.inet"}
+                                <form action="{url path='/admin/module/freeshipping/export'}" method="post">
+                                    {form_hidden_fields form=$form}
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading clearfix">
+                                            {intl l="Change orders status after export" d='freeshipping.ai'}
+                                        </div>
+                                        <div class="panel-body">
+                                            {form_field form=$form field="new_status_id"}
+                                                <table>
+
+                                                    <tr>
+                                                        <td>
+                                                            <label for="nochange">{intl l="Do not change" d='freeshipping.ai'}</label>&nbsp;
+                                                        </td>
+                                                        <td>
+                                                            <input type="radio"  id="nochange" name="{$name}" value="nochange" {if $data eq "nochange"}checked{/if} />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label for="processing">{intl l="Processing" d='freeshipping.ai'}</label>&nbsp;
+                                                        </td>
+                                                        <td>
+                                                            <input type="radio"  id="processing" name="{$name}" value="processing" {if $data eq "processing"}checked{/if} />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label for="sent">{intl l="Sent" d='freeshipping.ai'}*</label>&nbsp;
+                                                        </td>
+                                                        <td>
+                                                            <input type="radio"  id="sent" name="{$name}" value="sent" {if $data eq "sent"}checked{/if} />
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            {/form_field}
+                                            <span class="p">{intl l="*If you choose this option, the exported orders would not be available on this page anymore" d='freeshipping.ai'}</span>
+                                        </div>
+                                    </div>
+                                    <table class="table table-striped table-condensed">
+                                        <thead>
+                                        <th class="object-title">
+                                            {intl l="REF" d='freeshipping.ai'}
+                                        </th>
+                                        <th class="object-title">
+                                            {intl l="Date" d='freeshipping.ai'}
+                                        </th>
+                                        <th class="object-title">
+                                            {intl l="Total taxed amount" d='freeshipping.ai'}
+                                        </th>
+                                        <th class="object-title">
+                                            {intl l="Export" d='freeshipping.ai'}
+                                        </th>
+                                        </thead>
+
+                                        <tbody>
+                                        {loop name="order.notsent.freeshipping" type="order.notsent.freeshipping"}
+                                        {form_field form=$form field="order_"|cat:$ID}
+                                            <tr>
+                                                <td>
+                                                    <label for="{$label_attr.for}">
+                                                        {$label}
+                                                    </label>
+                                                </td>
+                                                <td>
+                                                    {$CREATE_DATE|date_format}
+                                                </td>
+                                                <td>
+                                                    {$TOTAL_TAXED_AMOUNT} {loop name="list.freeshipping.getcurrency" type="currency" id=$CURRENCY}{$SYMBOL}{/loop}
+                                                </td>
+                                                <td>
+                                                    <input type="checkbox" name="{$name}" id="{$label_attr.for}" value="true" class="form-control"/>
+                                                </td>
+                                            </tr>
+                                        {/form_field}
+                                        {/loop}
+                                        </tbody>
+                                    </table>
+                                    <button type="submit" name="export_freeshipping_form" value="stay" class="form-submit-button btn btn-sm btn-default" title="{intl l='Export' d='freeshipping.ai'}">{intl l='Export' d='freeshipping.ai'}</button>
+                                </form>
+                            {/form}
+                        </div>
+                        <div id="rule"  class="tab-pane {if $tab eq "rule"}active{/if} form-container">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    {intl l="Configure FreeShipping rule" d='freeshipping.ai'}
+                                </div>
+
+                                <div class="panel-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-condensed table-left-aligned">
+                                            <caption class="clearfix">
+                                                {intl l="Free carriage rules"}
+                                                {loop type="auth" name="can_create" role="ADMIN" module="freeShipping" access="CREATE"}
+                                                    <a class="btn btn-default btn-primary pull-right" title="{intl l='Create a new rule'}" href="#rule_create_dialog" data-toggle="modal">
+                                                        <span class="glyphicon glyphicon-plus"></span>
+                                                    </a>
+                                                {/loop}
+                                            </caption>
+                                            <thead>
+                                            <tr>
+                                                <th>{intl l="Area"}</th>
+                                                <th>{intl l="Amount up to ... (€)"}</th>
+                                                <th class="actions">{intl l="Actions"}</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                                {loop name="rules" type="free_shipping"}
+                                                <tr>
+                                                    <td><a href="{url path="/admin/configuration/shipping_configuration/update/$AREA_ID"}">{$AREA_NAME}</a></td>
+                                                    <td>{$AMOUNT}</td>
+                                                    <td class="actions">
+                                                        <div class="btn-group">
+                                                            {loop type="auth" name="can_change" role="ADMIN" module="freeShipping" access="UPDATE"}
+                                                                <a class="btn btn-default btn-xs" title="{intl l='Edit this rule'}" href="{url path="/admin/module/FreeShipping/update/$ID"}"><span class="glyphicon glyphicon-edit"></span></a>
+                                                                <a class="btn btn-default btn-xs rule-delete" title="{intl l='Delete this rule'}" href="#rule_delete_dialog" data-toggle="modal" data-id="{$ID}"><span class="glyphicon glyphicon-trash"></span></a>
+                                                            {/loop}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {/loop}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-
         </div>
-
     </div>
 </div>
 

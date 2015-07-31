@@ -6,11 +6,13 @@
 
     <loops>
         <loop name="free_shipping" class="FreeShipping\Loop\FreeShipping" />
+        <loop name="order.notsent.freeshipping" class="FreeShipping\Loop\NotSendOrders" />
     </loops>
 
     <forms>
         <form name="freeShipping.admin.rule.creation" class="FreeShipping\Form\FreeShippingRuleCreationForm"/>
         <form name="freeShipping.admin.rule.modification" class="FreeShipping\Form\FreeShippingRuleModificationForm"/>
+        <form name="freeShipping.export.inet" class="FreeShipping\Form\ExportOrder" />
     </forms>
 
     <commands>
