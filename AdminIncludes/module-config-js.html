@@ -1,0 +1,41 @@
+<script>
+    $(document).ready(function() {
+        var checkboxes = [];
+
+        {loop name="js.get.orders.freeshipping.export" type="order.notsent.freeshipping"}
+        checkboxes.push("export_{$ID}");
+        {/loop}
+        //Buttons
+        $("#check-all-but").click( function() {
+            checkboxes.forEach(function(entry) {
+                $("#"+entry).prop('checked', true);
+            });
+        });
+        $("#uncheck-all-but").click( function() {
+            checkboxes.forEach(function(entry) {
+                $("#"+entry).prop('checked', false);
+            });
+        });
+        $("#reverse-all-but").click( function() {
+            checkboxes.forEach(function(entry) {
+                var box=$("#"+entry);
+                box.prop('checked', !box.is(":checked"));
+            });
+        });
+        // Export form button
+        $("button[name=export_freeshiping_form]").click(function() {
+            var value = $("input[name='exportfreeshippingorder[new_status_id]']:checked").val();
+            if(value == "sent") {
+                checkboxes.forEach(function(entry) {
+                    var box=$("#"+entry);
+                    if(box.is(":checked")) {
+                        var row= box.parents("tr"); // get first tr parent
+                        row.hide('slow', function() {
+                            row.remove();
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>
