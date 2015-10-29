@@ -25,9 +25,15 @@ namespace FreeShipping;
 
 use FreeShipping\Model\Base\FreeShippingQuery;
 use Propel\Runtime\Connection\ConnectionInterface;
+use Thelia\Core\Translation\Translator;
 use Thelia\Install\Database;
 use Thelia\Model\AreaQuery;
 use Thelia\Model\Country;
+use Thelia\Model\Lang;
+use Thelia\Model\LangQuery;
+use Thelia\Model\Message;
+use Thelia\Model\MessageQuery;
+use Thelia\Model\ModuleQuery;
 use Thelia\Module\AbstractDeliveryModule;
 
 /**
@@ -36,6 +42,26 @@ use Thelia\Module\AbstractDeliveryModule;
  */
 class FreeShipping extends AbstractDeliveryModule
 {
+    /** The module domain for internationalisation */
+    const MODULE_DOMAIN = "freeshipping";
+
+    /**
+     * The confirmation message identifier
+     */
+    const MESSAGE_SEND_CONFIRMATION = "send_comfirmation_freeshipping";
+
+    /** @var Translator $translator */
+    protected $translator;
+
+    protected function trans($id, $locale, $parameters = [])
+    {
+        if ($this->translator === null) {
+            $this->translator = Translator::getInstance();
+        }
+
+        return $this->translator->trans($id, $parameters, self::MODULE_DOMAIN, $locale);
+    }
+
     /**
      * @param ConnectionInterface $con
      */
@@ -43,6 +69,37 @@ class FreeShipping extends AbstractDeliveryModule
     {
         $database = new Database($con->getWrappedConnection());
         $database->insertSql(null, [__DIR__ . DS . 'Config' . DS . 'thelia.sql']);
+
+
+        $languages = LangQuery::create()->find();
+
+        if (null === MessageQuery::create()->findOneByName(self::MESSAGE_SEND_CONFIRMATION)) {
+            $message = new Message();
+            $message
+                ->setName(self::MESSAGE_SEND_CONFIRMATION)
+                ->setHtmlLayoutFileName('')
+                ->setHtmlTemplateFileName(self::MESSAGE_SEND_CONFIRMATION.'.html')
+                ->setTextLayoutFileName('')
+                ->setTextTemplateFileName(self::MESSAGE_SEND_CONFIRMATION.'.txt')
+            ;
+
+            foreach ($languages as $language) {
+                /** @var Lang $language */
+                $locale = $language->getLocale();
+
+                $message->setLocale($locale);
+
+                $message->setTitle(
+                    $this->trans('Order send confirmation', $locale)
+                );
+
+                $message->setSubject(
+                    $this->trans('Order send confirmation', $locale)
+                );
+            }
+
+            $message->save();
+        }
     }
 
 

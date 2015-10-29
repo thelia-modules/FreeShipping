@@ -1,0 +1,31 @@
+{extends file="email-layout.tpl"}
+
+{* Do not provide a "Open in browser" link  *}
+{block name="browser"}{/block}
+{* No pre-header *}
+{block name="pre-header"}{/block}
+
+{* Subject  *}
+{block name="email-subject"}{intl l="Your order %ref has been shipped" ref={$order_ref} d="freeshipping.email.default"}{/block}
+
+{* Title  *}
+{block name="email-title"}{intl l="Your order %ref has been shipped" ref={$order_ref} d="freeshipping.email.default"}{/block}
+
+{* Content  *}
+{block name="email-content"}
+    {loop type="customer" name="customer.order" current="false" id="$customer_id" backend_context="1"}
+    <p>{intl l="Dear" d="freeshipping.email.default"} {$FIRSTNAME} {$LASTNAME},</p>
+    {/loop}
+    <p>{intl l="Thank you for your order on our online store %name" name={config key="store_name"} d="freeshipping.email.default"}.</p>
+
+    <p>{intl l="Your order %ref dated %date_order has been shipped on %update_date" ref={$order_ref} date_order={format_date date=$order_date} update_date={format_date date=$update_date} d="freeshipping.email.default"}.
+        {if $package}{intl l="The tracking number for this delivery is %package" package={$package} d="freeshipping.email.default"}.{/if}</p>
+
+    <p>{intl l="You can use this tracking number to get your parcel in your local La Poste office" d="freeshipping.email.default"}.
+        {intl l="If don't get an advice in your mailbox after two working days, claim your parcel at your local La Poste office, using this tracking number" d="freeshipping.email.default"}.
+    </p>
+
+    <p>{intl l="Feel free to contact us for any forther information" d="freeshipping.email.default"}</p>
+
+    <p>{intl l="Best Regards." d="freeshipping.email.default"}</p>
+{/block}

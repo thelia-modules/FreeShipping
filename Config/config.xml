@@ -30,6 +30,11 @@
             <argument type="service" id="service_container"/>
             <tag name="kernel.event_subscriber"/>
         </service>
+        <service id="freeShipping.mail" class="FreeShipping\EventListener\SendConfirmationEmail" scope="request">
+            <argument type="service" id="thelia.parser" />
+            <argument type="service" id="mailer"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
     </services>
 
 </config>
