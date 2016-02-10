@@ -62,7 +62,8 @@ class FreeShippingController extends AbstractCrudController
         );
     }
 
-    public function createRuleAction(){
+    public function createRuleAction()
+    {
 
         if (null !== $response = $this->checkAuth(array(), array('FreeShipping'), AccessManager::CREATE)) {
             return $response;
