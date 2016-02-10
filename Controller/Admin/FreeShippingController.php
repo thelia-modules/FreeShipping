@@ -52,9 +52,7 @@ class FreeShippingController extends AbstractCrudController
             'freeShipping',
             'manual',
             'freeShipping_order',
-
-            [],
-
+            AdminResources::MODULE,
             FreeShippingEvents::FREE_SHIPPING_RULE_CREATE,
             FreeShippingUpdateEvent::FREE_SHIPPING_RULE_UPDATE,
             FreeShippingDeleteEvent::FREE_SHIPPING_RULE_DELETE,
