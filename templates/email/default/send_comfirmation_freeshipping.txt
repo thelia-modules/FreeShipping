@@ -3,11 +3,17 @@
 {/loop}
 {intl l="Thank you for your order on our online store %name" name={config key="store_name"} d="freeshipping.email.default"}.</p>
 
-{intl l="Your order %ref dated %date_order has been shipped on %update_date" ref={$order_ref} date_order={format_date date=$order_date} update_date={format_date date=$update_date} d="freeshipping.email.default"}.
+{loop name="order.invoice" type="order" id=$order_id customer="*"}
+{intl l="Your order %ref dated %date_order has been shipped on %update_date" ref={$order_ref} date_order={format_date date=$CREATE_DATE output="date"} update_date={format_date date=$UPDATE_DATE output="date"} d="freeshipping.email.default"}.
 {if $package}{intl l="The tracking number for this delivery is %package" package={$package} d="freeshipping.email.default"}.{/if}
 
-{intl l="You can use this tracking number to get your parcel in your local La Poste office" d="freeshipping.email.default"}.
-{intl l="If don't get an advice in your mailbox after two working days, claim your parcel at your local La Poste office, using this tracking number" d="freeshipping.email.default"}.
+{if $package}
+{intl l="You can use this tracking number to get your parcel in your local post office" d="freeshipping.email.default"}.
+{intl l="If don't get an advice in your mailbox after two working days, claim your parcel at your local post office, using this tracking number" d="freeshipping.email.default"}.
+{else}
+{intl l="If don't get an advice in your mailbox after two working days, claim your parcel at your local post office" d="freeshipping.email.default"}
+{/if}
+{/loop}
 
 {intl l="Feel free to contact us for any forther information" d="freeshipping.email.default"}
 
