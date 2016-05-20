@@ -2,15 +2,17 @@
 
 This module is used to offer shipping from a minimum amount on a specific shipping zone.
 
-## How to install
+### Manually
 
-This module must be into your ```modules/``` directory (thelia/local/modules/).
+* Copy the module into ```<thelia_root>/local/modules/``` directory and be sure that the name of the module is ```FreeShipping```.
+* Activate it in your thelia administration panel
 
-You can download the .zip file of this module or create a git submodule into your project like this :
+### Composer
+
+Add it in your main thelia composer.json file
 
 ```
-cd /path-to-thelia
-git submodule add https://github.com/thelia-modules/FreeShipping.git local/modules/FreeShipping
+composer require thelia/free-shipping-module:~1.1.0
 ```
 
 Next, go to your Thelia admin panel for module activation.
