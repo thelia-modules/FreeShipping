@@ -5,6 +5,7 @@ namespace FreeShipping\Loop;
 
 use FreeShipping\FreeShipping;
 use Propel\Runtime\ActiveQuery\Criteria;
+use Thelia\Core\Template\Loop\Argument\Argument;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
 use Thelia\Core\Template\Loop\Order;
 use Thelia\Model\OrderQuery;
@@ -15,7 +16,9 @@ class NotSendOrders extends Order
 {
     public function getArgDefinitions()
     {
-        return new ArgumentCollection();
+        return new ArgumentCollection(
+            Argument::createBooleanTypeArgument('with_prev_next_info', false)
+        );
     }
 
     public function buildModelCriteria()
