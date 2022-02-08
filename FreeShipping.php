@@ -139,17 +139,13 @@ class FreeShipping extends AbstractDeliveryModule
         $cart = $this->getRequest()->getSession()->getSessionCart($this->getDispatcher());
 
         $amount = $cart->getTaxedAmount($country);
-        $areaId = $country->getAreaId();
 
-        $area = FreeShippingQuery::create()->findOneByAreaId($areaId);
-        if (isset($area)) {
-            $maxAmount = $area->getAmount();
-
-            if ($amount >= $maxAmount) {
-                return true;
-            }
-        }
-
-        return false;
+        return
+            ((null !== $area = $this->getAreaForCountry($country))
+            &&
+            (null !== $shippingInfo = FreeShippingQuery::create()->findOneByAreaId($area->getId()))
+            &&
+            $amount >= $shippingInfo->getAmount()
+        );
     }
 }
