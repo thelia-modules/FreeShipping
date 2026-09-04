@@ -19,6 +19,7 @@ use FreeShipping\Event\RuleEvent;
 use FreeShipping\Event\SettingsEvent;
 use FreeShipping\Form\RuleForm;
 use FreeShipping\Form\SettingsForm;
+use FreeShipping\FreeShipping;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -109,7 +110,7 @@ class ConfigurationController extends BaseAdminController
      * with a five hundred.
      */
     #[Route('/rule/delete', name: 'rule_delete', methods: 'POST')]
-    public function deleteRule(EventDispatcherInterface $eventDispatcher, ParserContext $parserContext): Response
+    public function deleteRule(EventDispatcherInterface $eventDispatcher): Response
     {
         if (null !== $response = $this->checkAuth(AdminResources::MODULE, [], AccessManager::UPDATE)) {
             return $response;
@@ -121,8 +122,10 @@ class ConfigurationController extends BaseAdminController
             $this->getTokenProvider()->checkToken(
                 (string) ($request->query->get('_token') ?? $request->request->get('_token', '')),
             );
-        } catch (\Exception $exception) {
-            $parserContext->setGeneralError($exception->getMessage());
+        } catch (\Throwable) {
+            // The screen the dialog was opened from is stale, so say so rather
+            // than let the rule quietly survive an apparently accepted click.
+            $this->flashDanger($this->translator->trans('The security token has expired. Please open the screen again and retry.', [], FreeShipping::DOMAIN_NAME));
 
             return $this->generateRedirect(self::CONFIGURATION_URL);
         }
@@ -134,6 +137,19 @@ class ConfigurationController extends BaseAdminController
         }
 
         return $this->generateRedirect(self::CONFIGURATION_URL);
+    }
+
+    /**
+     * The back office renders the flash bag of the session at the top of every
+     * page, with the bag name as the alert colour.
+     */
+    private function flashDanger(string $message): void
+    {
+        try {
+            $this->addFlash('danger', $message);
+        } catch (\Throwable) {
+            // A request without a session has no one to show the message to.
+        }
     }
 
     private function failed(\Thelia\Form\BaseForm $form, ParserContext $parserContext, string $message): Response
