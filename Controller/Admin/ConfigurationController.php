@@ -88,8 +88,8 @@ class ConfigurationController extends BaseAdminController
                 (int) $data['area_id'],
                 $deliveryModuleId,
                 (float) $data['threshold'],
-                $data['start_date'] ?? null,
-                $data['end_date'] ?? null,
+                RuleForm::toDate($data['start_date'] ?? null),
+                RuleForm::toDate($data['end_date'] ?? null),
                 (bool) ($data['active'] ?? false),
             );
 

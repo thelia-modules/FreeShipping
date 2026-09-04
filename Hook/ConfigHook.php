@@ -22,7 +22,7 @@ use FreeShipping\Service\FreeShippingSettings;
 use FreeShipping\Service\RulePresenter;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Thelia\Core\Event\Hook\HookRenderEvent;
-use Thelia\Core\Form\TheliaFormFactory;
+use Thelia\Core\Form\FormServiceInterface;
 use Thelia\Core\Hook\BaseHook;
 use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Core\Template\Parser\ParserResolver;
@@ -36,7 +36,7 @@ class ConfigHook extends BaseHook
     private const CONFIGURATION_URL = '/admin/module/FreeShipping';
 
     public function __construct(
-        private readonly TheliaFormFactory $formFactory,
+        private readonly FormServiceInterface $formService,
         private readonly RulePresenter $presenter,
         private readonly FreeShippingSettings $settings,
         private readonly FreeShippingRuleRepository $rules,
@@ -55,25 +55,32 @@ class ConfigHook extends BaseHook
         ];
     }
 
+    /**
+     * The forms come from the form service, not from the factory: a submission
+     * the controller refused is waiting in the parser context, and the service
+     * hands it back with the values that were typed and the errors that were
+     * raised. Building a fresh form here would silently drop both.
+     */
     public function onModuleConfiguration(HookRenderEvent $event): void
     {
-        $settingsForm = $this->formFactory->createForm(SettingsForm::getName(), data: [
+        $settingsForm = $this->formService->getFormByName(SettingsForm::getName(), [
             'threshold_includes_taxes' => $this->settings->thresholdIncludesTaxes(),
             'deduct_discounts' => $this->settings->deductDiscounts(),
             'success_url' => self::CONFIGURATION_URL,
             'error_url' => self::CONFIGURATION_URL,
-        ]);
+        ])->createView();
 
-        $ruleForm = $this->formFactory->createForm(RuleForm::getName(), data: $this->ruleFormData());
-        $deleteForm = $this->formFactory->createForm(DeleteRuleForm::getName(), data: [
+        $ruleForm = $this->formService->getFormByName(RuleForm::getName(), $this->ruleFormData())->createView();
+
+        $deleteForm = $this->formService->getFormByName(DeleteRuleForm::getName(), [
             'success_url' => self::CONFIGURATION_URL,
             'error_url' => self::CONFIGURATION_URL,
-        ]);
+        ])->createView();
 
         $event->add($this->render('FreeShipping/module_configuration.html.twig', [
-            'settings_form' => $settingsForm->createView()->getView(),
-            'rule_form' => $ruleForm->createView()->getView(),
-            'delete_form' => $deleteForm->createView()->getView(),
+            'settings_form' => $settingsForm,
+            'rule_form' => $ruleForm,
+            'delete_form' => $deleteForm,
             'rules' => $this->presenter->rows($this->editionLocale()),
             'edited_rule_id' => $this->editedRuleId(),
         ]));
@@ -112,8 +119,8 @@ class ConfigHook extends BaseHook
         $data['area_id'] = $rule->getAreaId();
         $data['delivery_module_id'] = $rule->getDeliveryModuleId() ?? '';
         $data['threshold'] = (float) $rule->getThreshold();
-        $data['start_date'] = $rule->getStartDate();
-        $data['end_date'] = $rule->getEndDate();
+        $data['start_date'] = $rule->getStartDate(RuleForm::DATE_FORMAT);
+        $data['end_date'] = $rule->getEndDate(RuleForm::DATE_FORMAT);
         $data['active'] = 1 === (int) $rule->getActive();
 
         return $data;

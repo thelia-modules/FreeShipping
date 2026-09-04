@@ -35,6 +35,8 @@ use Thelia\Module\BaseModule;
  */
 class RuleForm extends BaseForm
 {
+    public const DATE_FORMAT = 'Y-m-d';
+
     protected function buildForm(): void
     {
         $this->formBuilder
@@ -57,14 +59,21 @@ class RuleForm extends BaseForm
                 'required' => true,
                 'constraints' => [new NotBlank(), new GreaterThanOrEqual(0)],
             ])
+            // Dates are kept as strings on purpose: the parser context drops
+            // objects from the data it stores to redisplay a refused form, so a
+            // DateTime field would come back empty after a validation error.
             ->add('start_date', DateType::class, [
                 'label' => $this->translator->trans('Start date', [], FreeShipping::DOMAIN_NAME),
                 'widget' => 'single_text',
+                'input' => 'string',
+                'input_format' => self::DATE_FORMAT,
                 'required' => false,
             ])
             ->add('end_date', DateType::class, [
                 'label' => $this->translator->trans('End date', [], FreeShipping::DOMAIN_NAME),
                 'widget' => 'single_text',
+                'input' => 'string',
+                'input_format' => self::DATE_FORMAT,
                 'required' => false,
                 'constraints' => [
                     new Callback($this->checkPeriodOrder(...)),
@@ -83,17 +92,34 @@ class RuleForm extends BaseForm
      */
     public function checkPeriodOrder(mixed $value, ExecutionContextInterface $context): void
     {
-        if (!$value instanceof \DateTimeInterface) {
+        $endDate = self::toDate($value);
+        $startDate = self::toDate($context->getRoot()->get('start_date')->getData());
+
+        if (null === $endDate || null === $startDate) {
             return;
         }
 
-        $startDate = $context->getRoot()->get('start_date')->getData();
-
-        if ($startDate instanceof \DateTimeInterface && $value < $startDate) {
+        if ($endDate < $startDate) {
             $context->addViolation(
                 $this->translator->trans('The end date must not come before the start date.', [], FreeShipping::DOMAIN_NAME),
             );
         }
+    }
+
+    /**
+     * The two date fields answer with a "Y-m-d" string, or nothing at all.
+     */
+    public static function toDate(mixed $value): ?\DateTimeImmutable
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return \DateTimeImmutable::createFromInterface($value);
+        }
+
+        if (!\is_string($value) || '' === trim($value)) {
+            return null;
+        }
+
+        return \DateTimeImmutable::createFromFormat('!'.self::DATE_FORMAT, $value) ?: null;
     }
 
     /**
