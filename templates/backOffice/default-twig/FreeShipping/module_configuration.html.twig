@@ -1,0 +1,103 @@
+{% set domain = 'freeshipping' %}
+
+<div class="row g-4" data-testid="free-shipping-configuration">
+    <div class="col-12 col-xl-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <h2 class="h5 mb-0">{{ 'How the threshold is compared'|trans({}, domain) }}</h2>
+            </div>
+            <div class="card-body">
+                {{ form_start(settings_form, { action: '/admin/module/FreeShipping/settings', method: 'POST', attr: { 'data-testid': 'free-shipping-settings-form' } }) }}
+                    {{ form_widget(settings_form) }}
+                    <button type="submit" class="btn btn-primary mt-3">{{ 'Save'|trans({}, domain) }}</button>
+                {{ form_end(settings_form) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <h2 class="h5 mb-0">
+                    {% if edited_rule_id %}
+                        {{ 'Edit a rule'|trans({}, domain) }}
+                    {% else %}
+                        {{ 'Add a rule'|trans({}, domain) }}
+                    {% endif %}
+                </h2>
+            </div>
+            <div class="card-body">
+                {{ form_start(rule_form, { action: '/admin/module/FreeShipping/rule/save', method: 'POST', attr: { 'data-testid': 'free-shipping-rule-form' } }) }}
+                    {{ form_widget(rule_form) }}
+                    <div class="mt-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">{{ 'Save'|trans({}, domain) }}</button>
+                        {% if edited_rule_id %}
+                            <a class="btn btn-outline-secondary" href="/admin/module/FreeShipping">{{ 'Cancel'|trans({}, domain) }}</a>
+                        {% endif %}
+                    </div>
+                {{ form_end(rule_form) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0">{{ 'Free shipping rules'|trans({}, domain) }}</h2>
+            </div>
+            <div class="card-body">
+                {% if rules is empty %}
+                    <p class="text-muted mb-0">{{ 'No rule yet. Shipping is charged as usual.'|trans({}, domain) }}</p>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">{{ 'Delivery area'|trans({}, domain) }}</th>
+                                    <th scope="col">{{ 'Carrier'|trans({}, domain) }}</th>
+                                    <th scope="col">{{ 'Threshold'|trans({}, domain) }}</th>
+                                    <th scope="col">{{ 'Period'|trans({}, domain) }}</th>
+                                    <th scope="col">{{ 'Active'|trans({}, domain) }}</th>
+                                    <th scope="col" class="text-end">{{ 'Actions'|trans({}, domain) }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rule in rules %}
+                                    <tr data-testid="free-shipping-rule-row">
+                                        <td>{{ rule.area }}</td>
+                                        <td>{{ rule.carrier }}</td>
+                                        <td>{{ rule.threshold|number_format(2, '.', ' ') }}</td>
+                                        <td>
+                                            {% if rule.start_date or rule.end_date %}
+                                                {{ rule.start_date|default('...') }} &rsaquo; {{ rule.end_date|default('...') }}
+                                            {% else %}
+                                                {{ 'Always'|trans({}, domain) }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if rule.active %}
+                                                <span class="badge text-bg-success">{{ 'Yes'|trans({}, domain) }}</span>
+                                            {% else %}
+                                                <span class="badge text-bg-secondary">{{ 'No'|trans({}, domain) }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a class="btn btn-sm btn-outline-secondary" href="/admin/module/FreeShipping?rule={{ rule.id }}">{{ 'Edit'|trans({}, domain) }}</a>
+                                            <form class="d-inline" action="/admin/module/FreeShipping/rule/delete" method="POST">
+                                                <input type="hidden" name="{{ delete_form.vars.name }}[id]" value="{{ rule.id }}">
+                                                <input type="hidden" name="{{ delete_form.vars.name }}[success_url]" value="/admin/module/FreeShipping">
+                                                <input type="hidden" name="{{ delete_form.vars.name }}[error_url]" value="/admin/module/FreeShipping">
+                                                <input type="hidden" name="{{ delete_form.vars.name }}[_token]" value="{{ delete_form._token.vars.value }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">{{ 'Delete'|trans({}, domain) }}</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
