@@ -17,7 +17,6 @@ namespace FreeShipping\Controller\Admin;
 use FreeShipping\Event\FreeShippingEvents;
 use FreeShipping\Event\RuleEvent;
 use FreeShipping\Event\SettingsEvent;
-use FreeShipping\Form\DeleteRuleForm;
 use FreeShipping\Form\RuleForm;
 use FreeShipping\Form\SettingsForm;
 use Symfony\Component\HttpFoundation\Response;
@@ -103,6 +102,12 @@ class ConfigurationController extends BaseAdminController
         }
     }
 
+    /**
+     * Deletion is triggered from the confirmation dialog of the back office
+     * theme, which posts to an action carrying the Thelia token in its query
+     * string. A stale token has to answer with the screen and a message, not
+     * with a five hundred.
+     */
     #[Route('/rule/delete', name: 'rule_delete', methods: 'POST')]
     public function deleteRule(EventDispatcherInterface $eventDispatcher, ParserContext $parserContext): Response
     {
@@ -110,19 +115,25 @@ class ConfigurationController extends BaseAdminController
             return $response;
         }
 
-        $form = $this->createForm(DeleteRuleForm::getName());
+        $request = $this->getRequest();
 
         try {
-            $data = $this->validateForm($form)->getData();
-
-            $eventDispatcher->dispatch(new RuleEvent((int) $data['id']), FreeShippingEvents::RULE_DELETE);
-
-            return $this->generateSuccessRedirect($form) ?? $this->generateRedirect(self::CONFIGURATION_URL);
-        } catch (FormValidationException $exception) {
-            return $this->failed($form, $parserContext, $this->createStandardFormValidationErrorMessage($exception));
+            $this->getTokenProvider()->checkToken(
+                (string) ($request->query->get('_token') ?? $request->request->get('_token', '')),
+            );
         } catch (\Exception $exception) {
-            return $this->failed($form, $parserContext, $exception->getMessage());
+            $parserContext->setGeneralError($exception->getMessage());
+
+            return $this->generateRedirect(self::CONFIGURATION_URL);
         }
+
+        $ruleId = (int) $request->request->get('rule_id', 0);
+
+        if (0 !== $ruleId) {
+            $eventDispatcher->dispatch(new RuleEvent($ruleId), FreeShippingEvents::RULE_DELETE);
+        }
+
+        return $this->generateRedirect(self::CONFIGURATION_URL);
     }
 
     private function failed(\Thelia\Form\BaseForm $form, ParserContext $parserContext, string $message): Response

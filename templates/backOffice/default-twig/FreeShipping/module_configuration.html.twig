@@ -88,14 +88,18 @@
                                             {% endif %}
                                         </td>
                                         <td class="text-end">
-                                            <a class="btn btn-sm btn-outline-secondary" href="/admin/module/FreeShipping?rule={{ rule.id }}">{{ 'Edit'|trans({}, domain) }}</a>
-                                            <form class="d-inline" action="/admin/module/FreeShipping/rule/delete" method="POST">
-                                                <input type="hidden" name="{{ delete_form.vars.name }}[id]" value="{{ rule.id }}">
-                                                <input type="hidden" name="{{ delete_form.vars.name }}[success_url]" value="/admin/module/FreeShipping">
-                                                <input type="hidden" name="{{ delete_form.vars.name }}[error_url]" value="/admin/module/FreeShipping">
-                                                <input type="hidden" name="{{ delete_form.vars.name }}[_token]" value="{{ delete_form._token.vars.value }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">{{ 'Delete'|trans({}, domain) }}</button>
-                                            </form>
+                                            <a class="btn btn-sm btn-outline-secondary" href="/admin/module/FreeShipping?rule={{ rule.id }}">
+                                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                                                {{ 'Edit'|trans({}, domain) }}
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#free-shipping-rule-delete-modal"
+                                                    data-rule-id="{{ rule.id }}"
+                                                    data-testid="free-shipping-rule-delete-button">
+                                                <i class="bi bi-trash" aria-hidden="true"></i>
+                                                {{ 'Delete'|trans({}, domain) }}
+                                            </button>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -107,3 +111,15 @@
         </div>
     </div>
 </div>
+
+{{ component('BoConfirmDialog', {
+    id: 'free-shipping-rule-delete-modal',
+    title: 'Delete this free shipping rule'|trans({}, domain),
+    formAction: '/admin/module/FreeShipping/rule/delete',
+    message: 'Do you really want to delete this free shipping rule ?'|trans({}, domain),
+    confirmLabel: 'Delete'|trans({}, domain),
+    cancelLabel: 'Cancel'|trans({}, domain),
+    testid: 'free-shipping-rule-delete',
+    prefillTrigger: 'data-rule-id',
+    prefillInput: 'rule_id',
+}) }}

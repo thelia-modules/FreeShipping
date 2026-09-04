@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace FreeShipping\Hook;
 
-use FreeShipping\Form\DeleteRuleForm;
 use FreeShipping\Form\RuleForm;
 use FreeShipping\Form\SettingsForm;
 use FreeShipping\Repository\FreeShippingRuleRepository;
@@ -72,15 +71,9 @@ class ConfigHook extends BaseHook
 
         $ruleForm = $this->formService->getFormByName(RuleForm::getName(), $this->ruleFormData())->createView();
 
-        $deleteForm = $this->formService->getFormByName(DeleteRuleForm::getName(), [
-            'success_url' => self::CONFIGURATION_URL,
-            'error_url' => self::CONFIGURATION_URL,
-        ])->createView();
-
         $event->add($this->render('FreeShipping/module_configuration.html.twig', [
             'settings_form' => $settingsForm,
             'rule_form' => $ruleForm,
-            'delete_form' => $deleteForm,
             'rules' => $this->presenter->rows($this->editionLocale()),
             'edited_rule_id' => $this->editedRuleId(),
         ]));
