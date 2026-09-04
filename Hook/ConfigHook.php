@@ -76,6 +76,10 @@ class ConfigHook extends BaseHook
             'rule_form' => $ruleForm,
             'rules' => $this->presenter->rows($this->editionLocale()),
             'edited_rule_id' => $this->editedRuleId(),
+            // The threshold explains itself against the settings in force, so
+            // the merchant reads what will actually be compared.
+            'threshold_includes_taxes' => $this->settings->thresholdIncludesTaxes(),
+            'deduct_discounts' => $this->settings->deductDiscounts(),
         ]));
     }
 

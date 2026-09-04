@@ -92,7 +92,7 @@ class RuleForm extends BaseForm
      */
     public function checkPeriodOrder(mixed $value, ExecutionContextInterface $context): void
     {
-        $endDate = self::toDate($value);
+        $endDate = self::toEndOfDay($value);
         $startDate = self::toDate($context->getRoot()->get('start_date')->getData());
 
         if (null === $endDate || null === $startDate) {
@@ -120,6 +120,23 @@ class RuleForm extends BaseForm
         }
 
         return \DateTimeImmutable::createFromFormat('!'.self::DATE_FORMAT, $value) ?: null;
+    }
+
+    /**
+     * Both bounds of a period are included, and the field asks for a day, not
+     * for an instant: the last day of a sale has to still be part of it. An
+     * instant handed over explicitly, by an import or by hand in the database,
+     * is left exactly as it is.
+     */
+    public static function toEndOfDay(mixed $value): ?\DateTimeImmutable
+    {
+        $date = self::toDate($value);
+
+        if (!$date instanceof \DateTimeImmutable || $value instanceof \DateTimeInterface) {
+            return $date;
+        }
+
+        return $date->setTime(23, 59, 59);
     }
 
     /**
