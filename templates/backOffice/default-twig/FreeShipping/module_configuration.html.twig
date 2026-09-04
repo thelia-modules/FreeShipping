@@ -7,8 +7,13 @@
                 <h2 class="h5 mb-0">{{ 'How the threshold is compared'|trans({}, domain) }}</h2>
             </div>
             <div class="card-body">
+                {% form_theme settings_form with bo_form_themes only %}
                 {{ form_start(settings_form, { action: '/admin/module/FreeShipping/settings', method: 'POST', attr: { 'data-testid': 'free-shipping-settings-form' } }) }}
-                    {{ form_widget(settings_form) }}
+                    {{ form_errors(settings_form) }}
+                    {{ form_row(settings_form.threshold_includes_taxes) }}
+                    <p class="form-text mb-4">{{ 'Turn this off to compare with the total before taxes, which is what a business to business shop expects.'|trans({}, domain) }}</p>
+                    {{ form_row(settings_form.deduct_discounts) }}
+                    <p class="form-text mb-0">{{ 'Turn this off to compare the threshold with the total before any promotion code or customer discount.'|trans({}, domain) }}</p>
                     <button type="submit" class="btn btn-primary mt-3">{{ 'Save'|trans({}, domain) }}</button>
                 {{ form_end(settings_form) }}
             </div>
@@ -27,6 +32,7 @@
                 </h2>
             </div>
             <div class="card-body">
+                {% form_theme rule_form with bo_form_themes only %}
                 {{ form_start(rule_form, { action: '/admin/module/FreeShipping/rule/save', method: 'POST', attr: { 'data-testid': 'free-shipping-rule-form' } }) }}
                     {{ form_widget(rule_form) }}
                     <div class="mt-3 d-flex gap-2">
