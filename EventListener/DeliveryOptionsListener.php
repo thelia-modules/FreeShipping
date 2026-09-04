@@ -31,8 +31,8 @@ use Thelia\Model\Country;
 final readonly class DeliveryOptionsListener implements EventSubscriberInterface
 {
     /**
-     * Below the 129 that CustomDelivery — and every module that copies it —
-     * uses to append its options: there has to be an option before it can be
+     * Below the 129 that CustomDelivery, and every module that copies it, uses
+     * to append its options: there has to be an option before it can be
      * offered.
      */
     public const PRIORITY = 0;
