@@ -33,7 +33,8 @@ A rule is a threshold, a delivery area and, optionally, one carrier and a validi
 - A rule left open to every carrier applies to all of them; a rule tied to one carrier leaves the others with their usual price.
 - A rule outside its period, or turned off, does nothing.
 - When several rules apply to the same cart, the lowest threshold wins, both for the offer and for the message.
-- A rule that cannot be read, or an area that has been deleted, never blocks the checkout: the usual shipping cost applies and the reason is logged.
+- Deleting an area deletes its rules with it, and deleting a carrier deletes the rules tied to it: the remaining rules are simply the ones left, and the usual shipping cost applies where none does.
+- Nothing about free shipping can block the checkout. Should the offer fail to be computed at all, the price the carrier gave stands and the error is logged.
 
 ## Coupons
 
