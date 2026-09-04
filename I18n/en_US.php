@@ -35,6 +35,7 @@ return [
     'Save' => 'Save',
     'Start date' => 'Start date',
     'Subtract discounts before comparing' => 'Subtract discounts before comparing',
+    'The end date must not come before the start date.' => 'The end date must not come before the start date.',
     'Threshold' => 'Threshold',
     'Turn this off to compare the threshold with the total before any promotion code or customer discount.' => 'Turn this off to compare the threshold with the total before any promotion code or customer discount.',
     'Turn this off to compare with the total before taxes, which is what a business to business shop expects.' => 'Turn this off to compare with the total before taxes, which is what a business to business shop expects.',

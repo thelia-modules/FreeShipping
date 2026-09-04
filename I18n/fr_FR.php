@@ -35,6 +35,7 @@ return [
     'Save' => 'Enregistrer',
     'Start date' => 'Date de début',
     'Subtract discounts before comparing' => 'Déduire les remises avant la comparaison',
+    'The end date must not come before the start date.' => 'La date de fin ne doit pas précéder la date de début.',
     'Threshold' => 'Seuil',
     'Turn this off to compare the threshold with the total before any promotion code or customer discount.' => 'Décochez pour comparer le seuil au total avant tout code promo ou remise client.',
     'Turn this off to compare with the total before taxes, which is what a business to business shop expects.' => 'Décochez pour comparer au total HT, ce qu\'attend une boutique B2B.',

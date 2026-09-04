@@ -20,8 +20,10 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Thelia\Form\BaseForm;
 use Thelia\Model\AreaQuery;
 use Thelia\Model\ModuleQuery;
@@ -64,12 +66,34 @@ class RuleForm extends BaseForm
                 'label' => $this->translator->trans('End date', [], FreeShipping::DOMAIN_NAME),
                 'widget' => 'single_text',
                 'required' => false,
+                'constraints' => [
+                    new Callback($this->checkPeriodOrder(...)),
+                ],
             ])
             ->add('active', CheckboxType::class, [
                 'label' => $this->translator->trans('Active', [], FreeShipping::DOMAIN_NAME),
                 'required' => false,
             ])
         ;
+    }
+
+    /**
+     * A period that ends before it starts would save a rule that can never
+     * apply, and the table would still show it as active.
+     */
+    public function checkPeriodOrder(mixed $value, ExecutionContextInterface $context): void
+    {
+        if (!$value instanceof \DateTimeInterface) {
+            return;
+        }
+
+        $startDate = $context->getRoot()->get('start_date')->getData();
+
+        if ($startDate instanceof \DateTimeInterface && $value < $startDate) {
+            $context->addViolation(
+                $this->translator->trans('The end date must not come before the start date.', [], FreeShipping::DOMAIN_NAME),
+            );
+        }
     }
 
     /**
