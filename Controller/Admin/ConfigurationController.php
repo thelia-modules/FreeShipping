@@ -125,7 +125,7 @@ class ConfigurationController extends BaseAdminController
         } catch (\Throwable) {
             // The screen the dialog was opened from is stale, so say so rather
             // than let the rule quietly survive an apparently accepted click.
-            $this->flashDanger($this->translator->trans('The security token has expired. Please open the screen again and retry.', [], FreeShipping::DOMAIN_NAME));
+            $this->flashDanger($this->translator->trans('This screen has expired. Reload it and try again.', [], FreeShipping::DOMAIN_NAME));
 
             return $this->generateRedirect(self::CONFIGURATION_URL);
         }
