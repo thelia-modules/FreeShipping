@@ -1,0 +1,12 @@
+{
+  "name": "thelia/free-shipping-module",
+  "description": "Free shipping thresholds by area and carrier for Thelia",
+  "license": "GPL-3.0-or-later",
+  "type": "thelia-module",
+  "require": {
+    "thelia/installer": "^1.6"
+  },
+  "extra": {
+    "installer-name": "FreeShipping"
+  }
+}
