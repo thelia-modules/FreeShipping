@@ -1,139 +1,100 @@
 <?php
-/*************************************************************************************/
-/*                                                                                   */
-/*      Thelia	                                                                     */
-/*                                                                                   */
-/*      Copyright (c) OpenStudio                                                     */
-/*      email : info@thelia.net                                                      */
-/*      web : http://www.thelia.net                                                  */
-/*                                                                                   */
-/*      This program is free software; you can redistribute it and/or modify         */
-/*      it under the terms of the GNU General Public License as published by         */
-/*      the Free Software Foundation; either version 3 of the License                */
-/*                                                                                   */
-/*      This program is distributed in the hope that it will be useful,              */
-/*      but WITHOUT ANY WARRANTY; without even the implied warranty of               */
-/*      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                */
-/*      GNU General Public License for more details.                                 */
-/*                                                                                   */
-/*      You should have received a copy of the GNU General Public License            */
-/*	    along with this program. If not, see <http://www.gnu.org/licenses/>.         */
-/*                                                                                   */
-/*************************************************************************************/
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the Thelia package.
+ * http://www.thelia.net
+ *
+ * (c) OpenStudio <info@thelia.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace FreeShipping\Action;
 
-use FreeShipping\Event\FreeShippingDeleteEvent;
 use FreeShipping\Event\FreeShippingEvents;
-use FreeShipping\Event\FreeShippingUpdateEvent;
-use FreeShipping\Model\FreeShipping;
-use FreeShipping\Model\FreeShippingQuery;
+use FreeShipping\Event\RuleEvent;
+use FreeShipping\Event\SettingsEvent;
+use FreeShipping\Model\FreeShippingRule;
+use FreeShipping\Repository\FreeShippingRuleRepository;
+use FreeShipping\Service\FreeShippingSettings;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Thelia\Action\BaseAction;
-use Thelia\Model\Base\AreaQuery;
 
 /**
- *
- * FreeShippingAction class where all actions are managed
- *
- * Class FreeShippingAction
- * @package FreeShipping\Action
- * @author Michaël Espeche <mespeche@openstudio.fr>
+ * The only place a rule or a setting is written.
  */
-class FreeShippingAction extends BaseAction implements EventSubscriberInterface
+final readonly class FreeShippingAction implements EventSubscriberInterface
 {
-
-
-    public function createRule(FreeShippingEvents $event)
-    {
-        $rule = new FreeShipping();
-
-        $freeShippingArea = FreeShippingQuery::create()->findOneByAreaId($event->getArea());
-
-        if (null === $freeShippingArea) {
-            $rule
-                ->setAmount($event->getAmount())
-                ->setAreaId($event->getArea())
-                ->save();
-        } else {
-            $area = AreaQuery::create()->findOneById($event->getArea());
-
-            throw new \Exception(sprintf("A free shipping rule already exists for the '%s' area", $area->getName()));
-        }
-
+    public function __construct(
+        private FreeShippingRuleRepository $rules,
+        private FreeShippingSettings $settings,
+    ) {
     }
 
-    public function updateRule(FreeShippingUpdateEvent $event)
+    public function createRule(RuleEvent $event): void
     {
-
-        $areaId = $event->getArea();
-        $freeShippingArea = FreeShippingQuery::create()->findOneByAreaId($areaId);
-
-        if (null === $freeShippingArea || $freeShippingArea->getAmount() !== $event->getAmount() ) {
-
-            $id = $event->getRuleId();
-
-            if (null !== $freeShipping = FreeShippingQuery::create()->findPk($id)) {
-
-                $freeShipping->setDispatcher($event->getDispatcher());
-
-                $freeShipping
-                    ->setAreaId($event->getArea())
-                    ->setAmount($event->getAmount())
-                    ->save();
-
-                $event->setRule($freeShipping);
-            }
-
-        } else {
-            $area = AreaQuery::create()->findOneById($areaId);
-
-            throw new \Exception(sprintf("A free shipping rule already exists for the '%s' area", $area->getName()));
-        }
-
-
+        $event->setRule($this->save(new FreeShippingRule(), $event));
     }
 
-    public function deleteRule(FreeShippingDeleteEvent $event)
+    public function updateRule(RuleEvent $event): void
     {
+        $rule = $this->ruleOf($event);
 
-        $id = $event->getFreeShippingId();
-
-        if (null !== $freeShipping = FreeShippingQuery::create()->findPk($id)) {
-
-            $freeShipping->setDispatcher($event->getDispatcher())
-                ->delete();
-
+        if (!$rule instanceof FreeShippingRule) {
+            return;
         }
+
+        $event->setRule($this->save($rule, $event));
     }
 
-
-    /**
-     * Returns an array of event names this subscriber wants to listen to.
-     *
-     * The array keys are event names and the value can be:
-     *
-     *  * The method name to call (priority defaults to 0)
-     *  * An array composed of the method name to call and the priority
-     *  * An array of arrays composed of the method names to call and respective
-     *    priorities, or 0 if unset
-     *
-     * For instance:
-     *
-     *  * array('eventName' => 'methodName')
-     *  * array('eventName' => array('methodName', $priority))
-     *  * array('eventName' => array(array('methodName1', $priority), array('methodName2'))
-     *
-     * @return array The event names to listen to
-     *
-     * @api
-     */
-    public static function getSubscribedEvents()
+    public function deleteRule(RuleEvent $event): void
     {
-        return array(
-            FreeShippingEvents::FREE_SHIPPING_RULE_CREATE      => array('createRule', 128),
-            FreeShippingUpdateEvent::FREE_SHIPPING_RULE_UPDATE => array('updateRule', 128),
-            FreeShippingDeleteEvent::FREE_SHIPPING_RULE_DELETE => array('deleteRule', 128)
-        );
+        $rule = $this->ruleOf($event);
+
+        if (!$rule instanceof FreeShippingRule) {
+            return;
+        }
+
+        $rule->delete();
+        $event->setRule($rule);
+    }
+
+    public function updateSettings(SettingsEvent $event): void
+    {
+        $this->settings->save($event->thresholdIncludesTaxes(), $event->deductDiscounts());
+    }
+
+    private function ruleOf(RuleEvent $event): ?FreeShippingRule
+    {
+        $id = $event->getId();
+
+        return null === $id ? null : $this->rules->find($id);
+    }
+
+    private function save(FreeShippingRule $rule, RuleEvent $event): FreeShippingRule
+    {
+        $rule
+            ->setAreaId($event->getAreaId())
+            ->setDeliveryModuleId($event->getDeliveryModuleId())
+            ->setThreshold(number_format($event->getThreshold(), 6, '.', ''))
+            ->setStartDate($event->getStartDate())
+            ->setEndDate($event->getEndDate())
+            ->setActive($event->isActive() ? 1 : 0)
+            ->setPosition($event->getPosition())
+            ->save();
+
+        return $rule;
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            FreeShippingEvents::RULE_CREATE => ['createRule', 128],
+            FreeShippingEvents::RULE_UPDATE => ['updateRule', 128],
+            FreeShippingEvents::RULE_DELETE => ['deleteRule', 128],
+            FreeShippingEvents::SETTINGS_UPDATE => ['updateSettings', 128],
+        ];
     }
 }

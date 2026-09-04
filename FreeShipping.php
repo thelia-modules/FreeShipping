@@ -1,151 +1,79 @@
 <?php
-/*************************************************************************************/
-/*                                                                                   */
-/*      Thelia	                                                                     */
-/*                                                                                   */
-/*      Copyright (c) OpenStudio                                                     */
-/*      email : info@thelia.net                                                      */
-/*      web : http://www.thelia.net                                                  */
-/*                                                                                   */
-/*      This program is free software; you can redistribute it and/or modify         */
-/*      it under the terms of the GNU General Public License as published by         */
-/*      the Free Software Foundation; either version 3 of the License                */
-/*                                                                                   */
-/*      This program is distributed in the hope that it will be useful,              */
-/*      but WITHOUT ANY WARRANTY; without even the implied warranty of               */
-/*      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                */
-/*      GNU General Public License for more details.                                 */
-/*                                                                                   */
-/*      You should have received a copy of the GNU General Public License            */
-/*	    along with this program. If not, see <http://www.gnu.org/licenses/>.         */
-/*                                                                                   */
-/*************************************************************************************/
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the Thelia package.
+ * http://www.thelia.net
+ *
+ * (c) OpenStudio <info@thelia.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace FreeShipping;
 
-use FreeShipping\Model\Base\FreeShippingQuery;
 use Propel\Runtime\Connection\ConnectionInterface;
-use Thelia\Core\Translation\Translator;
-use Thelia\Install\Database;
-use Thelia\Model\AreaQuery;
-use Thelia\Model\Country;
-use Thelia\Model\Lang;
-use Thelia\Model\LangQuery;
-use Thelia\Model\Message;
-use Thelia\Model\MessageQuery;
-use Thelia\Model\ModuleQuery;
-use Thelia\Module\AbstractDeliveryModule;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
+use Symfony\Component\Finder\Finder;
+use Thelia\Core\Install\Database;
+use Thelia\Module\BaseModule;
 
-/**
- * Class FreeShipping
- * @package FreeShipping
- */
-class FreeShipping extends AbstractDeliveryModule
+class FreeShipping extends BaseModule
 {
-    /** The module domain for internationalisation */
-    const MODULE_DOMAIN = "freeshipping";
+    public const DOMAIN_NAME = 'freeshipping';
 
     /**
-     * The confirmation message identifier
+     * Compare the threshold with the tax included product total. "0" compares it
+     * with the untaxed total, which is what a B2B shop expects.
      */
-    const MESSAGE_SEND_CONFIRMATION = "send_comfirmation_freeshipping";
+    public const CONFIG_THRESHOLD_INCLUDES_TAXES = 'threshold_includes_taxes';
 
-    /** @var Translator $translator */
-    protected $translator;
+    /**
+     * Subtract cart discounts before comparing with the threshold.
+     */
+    public const CONFIG_DEDUCT_DISCOUNTS = 'deduct_discounts';
 
-    protected function trans($id, $locale, $parameters = [])
+    public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {
-        if ($this->translator === null) {
-            $this->translator = Translator::getInstance();
-        }
-
-        return $this->translator->trans($id, $parameters, self::MODULE_DOMAIN, $locale);
+        $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
+            ->exclude([__DIR__.'/I18n/*', __DIR__.'/Config/**/*.php', __DIR__.'/Tests/*', __DIR__.'/FreeShipping.php'])
+            ->autowire(true)
+            ->autoconfigure(true);
     }
 
-    /**
-     * @param ConnectionInterface $con
-     */
-    public function postActivation(ConnectionInterface $con = null)
+    public function postActivation(?ConnectionInterface $con = null): void
     {
-        $database = new Database($con->getWrappedConnection());
-        $database->insertSql(null, [__DIR__ . DS . 'Config' . DS . 'thelia.sql']);
+        if (!self::getConfigValue('is_initialized')) {
+            (new Database($con))->insertSql(null, [__DIR__.'/Config/TheliaMain.sql']);
 
+            self::setConfigValue(self::CONFIG_THRESHOLD_INCLUDES_TAXES, '1');
+            self::setConfigValue(self::CONFIG_DEDUCT_DISCOUNTS, '1');
+            self::setConfigValue('is_initialized', '1');
+        }
+    }
 
-        $languages = LangQuery::create()->find();
+    public function update($currentVersion, $newVersion, ?ConnectionInterface $con = null): void
+    {
+        $updateDir = __DIR__.'/Config/update';
 
-        if (null === MessageQuery::create()->findOneByName(self::MESSAGE_SEND_CONFIRMATION)) {
-            $message = new Message();
-            $message
-                ->setName(self::MESSAGE_SEND_CONFIRMATION)
-                ->setHtmlLayoutFileName('')
-                ->setHtmlTemplateFileName(self::MESSAGE_SEND_CONFIRMATION.'.html')
-                ->setTextLayoutFileName('')
-                ->setTextTemplateFileName(self::MESSAGE_SEND_CONFIRMATION.'.txt')
-            ;
+        if (!is_dir($updateDir)) {
+            return;
+        }
 
-            foreach ($languages as $language) {
-                /** @var Lang $language */
-                $locale = $language->getLocale();
+        $finder = Finder::create()
+            ->name('*.sql')
+            ->depth(0)
+            ->sortByName()
+            ->in($updateDir);
 
-                $message->setLocale($locale);
+        $database = new Database($con);
 
-                $message->setTitle(
-                    $this->trans('Order send confirmation', $locale)
-                );
-
-                $message->setSubject(
-                    $this->trans('Order send confirmation', $locale)
-                );
+        foreach ($finder as $file) {
+            if (version_compare($currentVersion, $file->getBasename('.sql'), '<')) {
+                $database->insertSql(null, [$file->getPathname()]);
             }
-
-            $message->save();
         }
-    }
-
-
-    /**
-     * calculate and return delivery price
-     *
-     * @param Country $country
-     *
-     * @return mixed
-     */
-    public function getPostage(Country $country)
-    {
-        return 0;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCode()
-    {
-        return 'FreeShipping';
-    }
-
-    /**
-     * This method is called by the Delivery  loop, to check if the current module has to be displayed to the customer.
-     * Override it to implements your delivery rules/
-     *
-     * If you return true, the delivery method will de displayed to the customer
-     * If you return false, the delivery method will not be displayed
-     *
-     * @param Country $country the country to deliver to.
-     *
-     * @return boolean
-     */
-    public function isValidDelivery(Country $country)
-    {
-        $cart = $this->getRequest()->getSession()->getSessionCart($this->getDispatcher());
-
-        $amount = $cart->getTaxedAmount($country);
-
-        return
-            ((null !== $area = $this->getAreaForCountry($country))
-            &&
-            (null !== $shippingInfo = FreeShippingQuery::create()->findOneByAreaId($area->getId()))
-            &&
-            $amount >= $shippingInfo->getAmount()
-        );
     }
 }

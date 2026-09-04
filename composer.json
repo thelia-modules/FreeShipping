@@ -1,19 +1,12 @@
 {
-    "name": "thelia/free-shipping-module",
-    "type": "thelia-module",
-    "license": "LGPL V3",
-    "description": "FreeShipping module for Thelia ecommerce solution",
-    "authors": [
-        {
-            "name": "Thelia",
-            "email": "info@thelia.net",
-            "homepage": "https://github.com/thelia-modules"
-        }
-    ],
-    "require": {
-        "thelia/installer": "~1.0"
-    },
-    "extra": {
-        "installer-name": "FreeShipping"
-    }
+  "name": "thelia/free-shipping-module",
+  "description": "Free shipping thresholds by area and carrier for Thelia",
+  "license": "GPL-3.0-or-later",
+  "type": "thelia-module",
+  "require": {
+    "thelia/installer": "^1.6"
+  },
+  "extra": {
+    "installer-name": "FreeShipping"
+  }
 }
