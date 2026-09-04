@@ -99,8 +99,12 @@ class RuleForm extends BaseForm
             ->orderByPosition()
             ->find();
 
+        // The back office edits in its own language, which the request carries
+        // on /admin: a carrier untranslated there falls back to its code.
+        $locale = $this->request->getLocale();
+
         foreach ($modules as $module) {
-            $choices[(string) ($module->getTitle() ?? $module->getCode())] = $module->getId();
+            $choices[(string) ($module->setLocale($locale)->getTitle() ?: $module->getCode())] = $module->getId();
         }
 
         return $choices;

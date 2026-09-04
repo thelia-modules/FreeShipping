@@ -24,6 +24,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Thelia\Core\Event\Hook\HookRenderEvent;
 use Thelia\Core\Form\TheliaFormFactory;
 use Thelia\Core\Hook\BaseHook;
+use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Core\Template\Parser\ParserResolver;
 use Thelia\Model\LangQuery;
 
@@ -56,8 +57,6 @@ class ConfigHook extends BaseHook
 
     public function onModuleConfiguration(HookRenderEvent $event): void
     {
-        $locale = $this->currentLocale();
-
         $settingsForm = $this->formFactory->createForm(SettingsForm::getName(), data: [
             'threshold_includes_taxes' => $this->settings->thresholdIncludesTaxes(),
             'deduct_discounts' => $this->settings->deductDiscounts(),
@@ -75,7 +74,7 @@ class ConfigHook extends BaseHook
             'settings_form' => $settingsForm->createView()->getView(),
             'rule_form' => $ruleForm->createView()->getView(),
             'delete_form' => $deleteForm->createView()->getView(),
-            'rules' => $this->presenter->rows($locale),
+            'rules' => $this->presenter->rows($this->editionLocale()),
             'edited_rule_id' => $this->editedRuleId(),
         ]));
     }
@@ -120,16 +119,17 @@ class ConfigHook extends BaseHook
         return $data;
     }
 
-    private function currentLocale(): string
+    /**
+     * The language the back office edits in, which is not the language the
+     * front office browses in.
+     */
+    private function editionLocale(): string
     {
         $request = $this->getRequest();
+        $session = $request?->hasSession() ? $request->getSession() : null;
 
-        if (null !== $request && $request->hasSession()) {
-            $locale = $request->getSession()->get('thelia.current.lang')?->getLocale();
-
-            if (null !== $locale) {
-                return $locale;
-            }
+        if ($session instanceof Session) {
+            return $session->getAdminLang()->getLocale() ?? 'en_US';
         }
 
         return LangQuery::create()->findOneByByDefault(1)?->getLocale() ?? 'en_US';
