@@ -16,11 +16,14 @@ namespace FreeShipping\Service;
 
 use FreeShipping\Model\FreeShippingRule;
 use FreeShipping\Repository\FreeShippingRuleRepository;
+use Thelia\Model\AreaDeliveryModule;
+use Thelia\Model\AreaDeliveryModuleQuery;
 use Thelia\Model\Cart;
 use Thelia\Model\Country;
 use Thelia\Model\CountryArea;
 use Thelia\Model\CountryAreaQuery;
 use Thelia\Model\State;
+use Thelia\Module\BaseModule;
 
 /**
  * Decides whether a cart is shipped for free, and what it would take to be.
@@ -114,6 +117,7 @@ final readonly class FreeShippingEvaluator
         }
 
         $now = new \DateTime();
+        $servedPairs = null;
         $applicable = [];
 
         foreach ($this->rules->findActive() as $rule) {
@@ -127,17 +131,53 @@ final readonly class FreeShippingEvaluator
 
             $ruleModuleId = $rule->getDeliveryModuleId();
 
-            // A rule tied to one carrier only answers for that carrier. With no
-            // carrier to answer for, every rule counts: the cart message speaks
-            // for the whole shop.
+            // A rule tied to one carrier only answers for that carrier.
             if (null !== $ruleModuleId && null !== $deliveryModuleId && $ruleModuleId !== $deliveryModuleId) {
                 continue;
+            }
+
+            // With no carrier to answer for, the cart message speaks for the
+            // whole shop, so a rule tied to a carrier only counts when that
+            // carrier can actually deliver in the area the rule covers.
+            // Announcing a threshold no carrier can honour would promise free
+            // shipping the checkout then charges for.
+            if (null !== $ruleModuleId && null === $deliveryModuleId) {
+                $servedPairs ??= $this->servedAreaCarrierPairs();
+
+                if (!isset($servedPairs[$rule->getAreaId().':'.$ruleModuleId])) {
+                    continue;
+                }
             }
 
             $applicable[] = $rule;
         }
 
         return $applicable;
+    }
+
+    /**
+     * Which carrier serves which area, as "areaId:moduleId" keys, read once per
+     * evaluation and only when a carrier bound rule is in the way.
+     *
+     * @return array<string, true>
+     */
+    private function servedAreaCarrierPairs(): array
+    {
+        $pairs = [];
+
+        $rows = AreaDeliveryModuleQuery::create()
+            ->useModuleQuery()
+                ->filterByActivate(1)
+                ->filterByType(BaseModule::DELIVERY_MODULE_TYPE)
+            ->endUse()
+            ->find();
+
+        /** @var AreaDeliveryModule $row */
+        foreach ($rows as $row) {
+            $pairs[$row->getAreaId().':'.$row->getDeliveryModuleId()] = true;
+        }
+
+        return $pairs;
     }
 
     /**

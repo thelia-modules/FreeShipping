@@ -42,6 +42,7 @@ A coupon that already removes the shipping cost and a free shipping rule lead to
 ## What the customer sees
 
 - On the cart page, above the products: "Only 4.40 € more for free delivery", or "Your delivery is free". The message follows the cart as quantities change, without reloading the page. It disappears when no rule applies.
+- A rule tied to one carrier is only announced when that carrier is active and serves the area the rule covers, so the message never promises a price no carrier can honour. Applying the offer to a carrier being priced does not need that check: it has already proved it can deliver.
 - At the delivery step, the carrier keeps its name and shows "Free" instead of a price.
 - `GET /api/front/delivery_modules` answers with `postage`, `postageTax` and `postageUntaxed` at zero, so a site that consumes the API does not need to know the rules.
 

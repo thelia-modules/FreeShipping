@@ -21,6 +21,7 @@ use FreeShipping\Service\FreeShippingDecision;
 use FreeShipping\Service\FreeShippingEvaluator;
 use FreeShipping\Service\FreeShippingSettings;
 use Thelia\Model\Area;
+use Thelia\Model\AreaDeliveryModule;
 use Thelia\Model\Cart;
 use Thelia\Model\Country;
 use Thelia\Model\CountryArea;
@@ -233,6 +234,52 @@ final class FreeShippingEvaluatorTest extends IntegrationTestCase
         self::assertSame(90.0, $decision->getThreshold());
     }
 
+    public function testTheAnnouncementIgnoresARuleWhoseCarrierDoesNotServeTheArea(): void
+    {
+        $cart = $this->cart(50.0);
+        $carrier = $this->deliveryModule('CustomDelivery');
+        $this->rule($this->area, 80.0, $carrier);
+
+        // Nothing attaches the carrier to the area yet, so the shop cannot
+        // deliver there with it and the threshold must not be announced.
+        self::assertNull($this->announce($cart)->getThreshold());
+
+        $this->serve($this->area, $carrier);
+
+        self::assertSame(80.0, $this->announce($cart)->getThreshold());
+    }
+
+    public function testTheAnnouncementIgnoresARuleWhoseCarrierIsInactive(): void
+    {
+        $cart = $this->cart(50.0);
+        $carrier = $this->deliveryModule('CustomDelivery');
+        $this->rule($this->area, 80.0, $carrier);
+        $this->serve($this->area, $carrier);
+
+        $carrier->setActivate(0)->save($this->getPropelConnection());
+
+        self::assertNull($this->announce($cart)->getThreshold());
+    }
+
+    public function testApplyingToACarrierDoesNotDependOnTheAreaItServes(): void
+    {
+        $cart = $this->cart(50.0);
+        $carrier = $this->deliveryModule('CustomDelivery');
+        $this->rule($this->area, 10.0, $carrier);
+
+        // The carrier is the one being priced, so it has already proved it can
+        // deliver: nothing more to check.
+        self::assertTrue($this->evaluate($cart, $carrier->getId())->isFree());
+    }
+
+    public function testTheAnnouncementKeepsARuleOpenToEveryCarrier(): void
+    {
+        $cart = $this->cart(50.0);
+        $this->rule($this->area, 80.0);
+
+        self::assertSame(80.0, $this->announce($cart)->getThreshold());
+    }
+
     public function testWithoutAnyRuleTheDecisionIsEmpty(): void
     {
         $decision = $this->evaluate($this->cart(50.0));
@@ -255,6 +302,19 @@ final class FreeShippingEvaluatorTest extends IntegrationTestCase
     private function evaluate(Cart $cart, ?int $deliveryModuleId = null): FreeShippingDecision
     {
         return $this->evaluator()->evaluate($cart, $this->country, null, $deliveryModuleId);
+    }
+
+    private function announce(Cart $cart): FreeShippingDecision
+    {
+        return $this->evaluator()->evaluate($cart, $this->country, null, null);
+    }
+
+    private function serve(Area $area, Module $carrier): void
+    {
+        (new AreaDeliveryModule())
+            ->setAreaId($area->getId())
+            ->setDeliveryModuleId($carrier->getId())
+            ->save($this->getPropelConnection());
     }
 
     private function cart(float $untaxedTotal): Cart
